@@ -22,6 +22,8 @@ export const employments = pgTable("employments", {
   employmentHash: text("employment_hash"),
   employerTokenHash: text("employer_token_hash").notNull().unique(),
   workerTokenHash: text("worker_token_hash").notNull().unique(),
+  /** The worker's invite link, kept only until they register so the employer can resend it. */
+  workerInviteToken: text("worker_invite_token"),
   openTx: text("open_tx"),
   anchorError: text("anchor_error"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

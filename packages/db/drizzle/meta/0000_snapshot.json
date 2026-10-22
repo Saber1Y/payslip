@@ -1,5 +1,5 @@
 {
-  "id": "7ab3d5bb-a3cc-4c58-bfaf-a93544aa95bc",
+  "id": "025e72d5-972a-4d90-9106-3b81fb2c4ac1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -97,6 +97,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "worker_invite_token": {
+          "name": "worker_invite_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "open_tx": {
           "name": "open_tx",

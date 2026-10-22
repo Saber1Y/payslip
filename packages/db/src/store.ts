@@ -15,6 +15,7 @@ export interface NewEmployment {
   salt: string;
   employerTokenHash: string;
   workerTokenHash: string;
+  workerInviteToken: string;
 }
 
 export function createStore(db: Db) {
@@ -44,7 +45,7 @@ export function createStore(db: Db) {
     async attachWorker(id: string, workerKey: PublicKeyRef, employment: Employment, employmentHash: string): Promise<EmploymentRow | null> {
       const [row] = await db
         .update(employments)
-        .set({ workerKey, employment, employmentHash, status: "open", openedAt: new Date() })
+        .set({ workerKey, employment, employmentHash, status: "open", workerInviteToken: null, openedAt: new Date() })
         .where(and(eq(employments.id, id), isNull(employments.workerKey)))
         .returning();
       return row ?? null;

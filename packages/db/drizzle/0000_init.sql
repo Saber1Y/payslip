@@ -14,6 +14,7 @@ CREATE TABLE "employments" (
 	"employment_hash" text,
 	"employer_token_hash" text NOT NULL,
 	"worker_token_hash" text NOT NULL,
+	"worker_invite_token" text,
 	"open_tx" text,
 	"anchor_error" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
