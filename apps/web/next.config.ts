@@ -7,6 +7,8 @@ import type { NextConfig } from "next";
 loadEnvConfig(fileURLToPath(new URL("../..", import.meta.url)), process.env.NODE_ENV !== "production", undefined, true);
 
 const nextConfig: NextConfig = {
+  // Pin the workspace root so Turbopack resolves its own internals (fonts) from this repository.
+  turbopack: { root: fileURLToPath(new URL("../..", import.meta.url)) },
   // Workspace packages ship TypeScript sources.
   transpilePackages: ["@payslip/core", "@payslip/chain", "@payslip/db"],
   // Server-only drivers stay as Node modules instead of being bundled.
