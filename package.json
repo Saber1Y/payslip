@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "pnpm --filter @payslip/web dev",
+    "dev:base-sepolia": "node scripts/with-env.mjs .env.base-sepolia .env -- pnpm --filter @payslip/web dev",
     "build": "pnpm --filter @payslip/web build",
     "lint": "eslint .",
     "typecheck": "pnpm -r --if-present typecheck",
@@ -16,10 +17,13 @@
     "contracts:build": "cd contracts && forge build && node ../scripts/export-abi.mjs",
     "chain": "anvil --port 8545 --chain-id 31337",
     "deploy": "tsx --env-file-if-exists=.env scripts/deploy.ts",
+    "deploy:base-sepolia": "node scripts/with-env.mjs .env.base-sepolia .env -- tsx scripts/deploy.ts",
     "seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
+    "seed:base-sepolia": "node scripts/with-env.mjs .env.base-sepolia .env -- tsx scripts/seed.ts",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
-    "db:migrate": "pnpm --filter @payslip/db migrate"
+    "db:migrate": "pnpm --filter @payslip/db migrate",
+    "db:migrate:base-sepolia": "node scripts/with-env.mjs .env.base-sepolia .env -- tsx packages/db/src/migrate-cli.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
