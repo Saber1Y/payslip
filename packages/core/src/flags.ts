@@ -32,13 +32,16 @@ export interface MonthState {
   decision: Decision | null;
 }
 
-const sgd = (c: number) => `$${(c / 100).toFixed(2)}`;
+const sgd = (c: number) => `S$${(c / 100).toFixed(2)}`;
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** "2026-09-07" as "7 Sep 2026": flag messages are read by workers and officers, not machines. */
+const day = (d: IsoDate) => `${Number(d.slice(8, 10))} ${MONTHS[Number(d.slice(5, 7)) - 1] ?? ""} ${d.slice(0, 4)}`;
 
 export function monthFlags(employment: Pick<Employment, "declaredMonthlySalaryCents">, month: MonthState, today: IsoDate): Flag[] {
   const deadline = paymentDeadline(month.period);
   const { record, decision } = month;
   if (!record) {
-    return today > deadline ? [{ code: "MISSING", severity: "breach", message: `No salary record by the ${deadline} deadline` }] : [];
+    return today > deadline ? [{ code: "MISSING", severity: "breach", message: `No salary record by the ${day(deadline)} deadline` }] : [];
   }
 
   const flags: Flag[] = [];
@@ -46,7 +49,7 @@ export function monthFlags(employment: Pick<Employment, "declaredMonthlySalaryCe
   if (decision?.decision === "dispute") flags.push({ code: "DISPUTED", severity: "warning", message: "The worker disputed this record" });
   if (decision?.underProtest) flags.push({ code: "UNDER_PROTEST", severity: "warning", message: "The worker signed under protest" });
 
-  if (record.paidOn > deadline) flags.push({ code: "PAID_LATE", severity: "breach", message: `Paid ${record.paidOn}, after the ${deadline} deadline` });
+  if (record.paidOn > deadline) flags.push({ code: "PAID_LATE", severity: "breach", message: `Paid ${day(record.paidOn)}, after the ${day(deadline)} deadline` });
   if (record.restDaysInMonth > 0 && record.restDaysTaken === 0) {
     flags.push({ code: "NO_REST_DAY", severity: "breach", message: "No rest day this month. At least one cannot be compensated away, unless it was deferred" });
   }
