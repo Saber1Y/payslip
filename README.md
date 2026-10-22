@@ -2,7 +2,7 @@
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests](https://img.shields.io/badge/tests-40%20passing-brightgreen)
-![Onchain](https://img.shields.io/badge/onchain-EVM%20(Anvil%20local,%20Base%20Sepolia%20target)-blue)
+![Onchain](https://img.shields.io/badge/onchain-Base%20Sepolia-blue)
 ![Loop](https://img.shields.io/badge/loop-record%20%E2%86%92%20co--sign%20%E2%86%92%20anchor%20%E2%86%92%20verify-blueviolet)
 ![Stack](https://img.shields.io/badge/stack-Next.js%20+%20Postgres%20+%20passkeys%20+%20viem%20+%20Solidity-orange)
 
@@ -12,7 +12,7 @@ Singapore's Ministry of Manpower (MOM) requires the employer and the migrant dom
 Today that record lives in a notebook the employer keeps, so in a dispute it is the employer's word against the worker's.
 Payslip puts the record on both phones, has both people sign it with a passkey, gives the worker their own copy, and anchors a fingerprint of every record on-chain so nobody can rewrite it later.
 
-Live frontend: not deployed yet · Backend: runs locally · Contract: `RecordRegistry`, deployed to a local Anvil chain (Base Sepolia deployment pending).
+Live frontend: not deployed yet · Backend: runs locally · Contract: [`RecordRegistry` on Base Sepolia](https://sepolia.basescan.org/address/0x2efdab0a0a7fe2bffd8750d51c53613704e45b93).
 
 [See it in one command](#see-it-in-one-command) · [The one rule](#the-one-rule) · [Architecture](#architecture) · [What's real vs pending](#whats-real-vs-pending---the-honesty-table) · [Tests](#tests) · [The one-flow demo](#the-one-flow-demo)
 
@@ -229,8 +229,9 @@ flowchart TB
 
 - `getEmployment(employmentId)` and `getEntries(employmentId, period)` for every period from the start month to today.
 
-The contract is deployed at `0x5fbdb2315678afecb367f032d93f642f64180aa3` on a local Anvil chain (chain id 31337).
-The Base Sepolia deployment is pending a funded deployer key.
+The contract is deployed on Base Sepolia (chain id 84532) at [`0x2efdab0a0a7fe2bffd8750d51c53613704e45b93`](https://sepolia.basescan.org/address/0x2efdab0a0a7fe2bffd8750d51c53613704e45b93), in transaction [`0x30b0e817…`](https://sepolia.basescan.org/tx/0x30b0e8171ee6e0aa214d5f956e14c5ad8a31896096eb2b94f5fb7317ba950e51) (block 48913883).
+The deploy script checked that the on-chain bytecode matches the Foundry build.
+Local development uses the same contract on Anvil (chain id 31337).
 The contract holds no funds and has no owner, upgrade path or admin functions.
 
 ## Engineering decisions and the hard problems
@@ -263,8 +264,8 @@ Those keys carry `authenticator: "software-demo"` inside the hashed employment, 
 | --- | --- |
 | Passkey creation and signing in the browser | Real - WebAuthn ES256; checked in Chrome with an in-page simulated authenticator that produces the same format; a real Touch ID or phone passkey has not been tested yet |
 | Server-side signature verification | Real - every record and decision is checked before it is stored |
-| On-chain anchoring | Real - transactions on a local Anvil chain |
-| Base Sepolia deployment | Not yet established - needs a funded deployer and relayer key |
+| On-chain anchoring | Real - transactions on a local Anvil chain; the app has not yet anchored records on Base Sepolia |
+| Base Sepolia deployment | Real - `RecordRegistry` at `0x2efdab0a0a7fe2bffd8750d51c53613704e45b93`, bytecode verified against the build; source not yet verified on Basescan |
 | In-browser packet verification | Real - reads the chain directly; tested with honest and altered packets |
 | MOM rule checks | Real - deadline, rest day, rest-day pay (salary / 26), underpayment, declared salary |
 | Demo history | Seeded with labelled software keys; the anchors are real |
@@ -354,7 +355,8 @@ pnpm dev
 
 ### Contract on Base Sepolia
 
-Set the Base Sepolia values from `.env.example`, fund `DEPLOYER_PRIVATE_KEY` with Base Sepolia ETH, then:
+Already deployed at `0x2efdab0a0a7fe2bffd8750d51c53613704e45b93`.
+To deploy your own, set the Base Sepolia values from `.env.example`, fund `DEPLOYER_PRIVATE_KEY` with Base Sepolia ETH, then:
 
 ```bash
 cd Payslip
@@ -394,7 +396,7 @@ The receipt and verification patterns are adapted from RelayMesh, by the same au
 
 ### Roadmap
 
-- Deploy to Base Sepolia and host the app.
+- Host the app against the Base Sepolia contract.
 - Bahasa Indonesia, Tagalog and Burmese for the worker screens.
 - Corrected re-proposals after a dispute, keeping the disputed version on record.
 - Encrypted worker backups with recovery through a partner NGO.
