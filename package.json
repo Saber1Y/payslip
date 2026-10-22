@@ -15,7 +15,7 @@
     "test:contracts": "cd contracts && forge test",
     "contracts:build": "cd contracts && forge build && node ../scripts/export-abi.mjs",
     "chain": "anvil --port 8545 --chain-id 31337",
-    "deploy:local": "tsx --env-file-if-exists=.env scripts/deploy.ts",
+    "deploy": "tsx --env-file-if-exists=.env scripts/deploy.ts",
     "seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
@@ -23,11 +23,15 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@payslip/chain": "workspace:*",
+    "@payslip/core": "workspace:*",
+    "@payslip/db": "workspace:*",
     "@types/node": "^24.19.2",
     "eslint": "^10.13.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "typescript-eslint": "~8.71.1",
+    "viem": "^2.57.7",
     "vitest": "^5.0.5"
   }
 }
