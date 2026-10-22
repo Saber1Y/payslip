@@ -264,9 +264,9 @@ Those keys carry `authenticator: "software-demo"` inside the hashed employment, 
 | --- | --- |
 | Passkey creation and signing in the browser | Real - WebAuthn ES256; checked in Chrome with an in-page simulated authenticator that produces the same format; a real Touch ID or phone passkey has not been tested yet |
 | Server-side signature verification | Real - every record and decision is checked before it is stored |
-| On-chain anchoring | Real - transactions on a local Anvil chain; the app has not yet anchored records on Base Sepolia |
+| On-chain anchoring | Real - Base Sepolia transactions from the seed and from a live flow through the app, listed in [docs/evidence.md](docs/evidence.md) |
 | Base Sepolia deployment | Real - `RecordRegistry` at `0x2efdab0a0a7fe2bffd8750d51c53613704e45b93`, bytecode verified against the build; source not yet verified on Basescan |
-| In-browser packet verification | Real - reads the chain directly; tested with honest and altered packets |
+| In-browser packet verification | Real - reads Base Sepolia directly from the browser; tested with honest and altered packets |
 | MOM rule checks | Real - deadline, rest day, rest-day pay (salary / 26), underpayment, declared salary |
 | Demo history | Seeded with labelled software keys; the anchors are real |
 | Hosted deployment | Not yet established |
@@ -274,8 +274,8 @@ Those keys carry `authenticator: "software-demo"` inside the hashed employment, 
 | Corrected re-proposal after a dispute | Not yet established - one record per month |
 | Encrypted worker backup and NGO recovery | Not yet established |
 
-The biggest open item is hosting on a public testnet with real devices.
-The flows have only been exercised in a desktop browser with a simulated authenticator; a real phone passkey still needs testing.
+The biggest open item is hosting the app and testing on real devices.
+The live flow ran against Base Sepolia in a desktop browser with a simulated authenticator; a real phone passkey still needs testing.
 
 ## Tests
 
@@ -355,12 +355,19 @@ pnpm dev
 
 ### Contract on Base Sepolia
 
-Already deployed at `0x2efdab0a0a7fe2bffd8750d51c53613704e45b93`.
-To deploy your own, set the Base Sepolia values from `.env.example`, fund `DEPLOYER_PRIVATE_KEY` with Base Sepolia ETH, then:
+Already deployed at `0x2efdab0a0a7fe2bffd8750d51c53613704e45b93`; the commands and transactions are in [docs/evidence.md](docs/evidence.md).
+To deploy your own, put the Base Sepolia values from `.env.example`, a funded `DEPLOYER_PRIVATE_KEY`, `RELAYER_PRIVATE_KEY` and a separate `DATABASE_URL` in `.env.base-sepolia`, then:
 
 ```bash
 cd Payslip
-pnpm contracts:build && pnpm deploy
+pnpm contracts:build && pnpm deploy:base-sepolia
+```
+
+The `:base-sepolia` scripts load `.env.base-sepolia` ahead of `.env`, so the local Anvil setup keeps working:
+
+```bash
+cd Payslip
+pnpm db:migrate:base-sepolia && pnpm seed:base-sepolia && pnpm dev:base-sepolia
 ```
 
 ### App
@@ -379,7 +386,8 @@ Payslip/
     chain/              # typed ABI, viem reader and writer
     db/                 # Drizzle schema, store and migrations
   apps/web/             # Next.js app: pages, components and API route handlers
-  scripts/              # ABI export, deploy, demo seed
+  scripts/              # ABI export, deploy, demo seed, env loader
+  docs/evidence.md      # Base Sepolia commands and transactions
   docs/screenshots/     # images used in this README
 ```
 
