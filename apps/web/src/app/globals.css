@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+/*
+  Payslip identity: a salary slip. Warm paper, ink-black type, one deep ledger-green accent.
+  Amounts and hashes are always mono with tabular figures. Status is shown as a rubber stamp,
+  and each month is a slip with a perforated tear line. Status colors are used only for state:
+  green signed, amber disputed or waiting, red breach or missing.
+*/
+:root {
+  --paper: #f4f0e6;
+  --sheet: #fffdf7;
+  --sheet-2: #faf6ec;
+  --rule: #e4dccb;
+  --rule-strong: #cfc4ad;
+  --ink: #1b1914;
+  --muted: #6a6355;
+  --accent: #1d5c47;
+  --accent-hover: #164a39;
+  --accent-ink: #fffdf7;
+  --accent-soft: #e2ede6;
+  --signed: #1d6b45;
+  --signed-soft: #e3f1e8;
+  --waiting: #8a5a00;
+  --waiting-soft: #f8ecd2;
+  --breach: #a3322a;
+  --breach-soft: #f8e3df;
+  --focus: #1d5c47;
+  --shadow-slip: 0 1px 0 rgb(255 255 255 / 0.8) inset, 0 1px 2px rgb(60 44 10 / 0.06), 0 14px 30px -18px rgb(60 44 10 / 0.22);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  color-scheme: light;
+}
+
+@theme inline {
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-sheet-2: var(--sheet-2);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-signed: var(--signed);
+  --color-signed-soft: var(--signed-soft);
+  --color-waiting: var(--waiting);
+  --color-waiting-soft: var(--waiting-soft);
+  --color-breach: var(--breach);
+  --color-breach-soft: var(--breach-soft);
+  --color-focus: var(--focus);
+  --shadow-slip: var(--shadow-slip);
+  --ease-out: var(--ease-out);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  /* Faint ledger ruling across the page, fixed so it never repaints with scrolling content. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgb(120 100 60 / 0.05) 31px 32px);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  input::placeholder {
+    color: rgb(106 99 85 / 0.55);
+  }
+}
+
+/* Numbers that must line up: amounts, dates, hashes. */
+@utility figures {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A slip of paper: sheet surface, hairline edge, soft lift. */
+@utility slip {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  box-shadow: var(--shadow-slip);
+}
+
+/* The perforated tear line between a slip's header and its body. */
+@utility perforation {
+  height: 1px;
+  background-image: repeating-linear-gradient(to right, var(--rule-strong) 0 6px, transparent 6px 11px);
+}
+
+/* Entry: slips settle in. Stagger with style={{ "--i": n }}. */
+@utility enter {
+  transition:
+    opacity 380ms var(--ease-out),
+    transform 380ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 50ms);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Press feedback for anything clickable. */
+@utility press {
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 200ms ease;
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+/* A stamp lands once, when a month's status first appears. */
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: rotate(-4deg) scale(1.35);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-4deg) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-4deg) scale(1);
+  }
+}
+
+@utility stamp-in {
+  animation: stamp-in 420ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter {
+    transform: none !important;
+    transition-property: opacity;
+  }
+  .press:active {
+    transform: none !important;
+  }
+  .stamp-in,
+  .animate-spin {
+    animation: none !important;
+  }
+}
