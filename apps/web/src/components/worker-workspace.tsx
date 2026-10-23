@@ -1,17 +1,18 @@
 "use client";
 
-import { DownloadSimple, Fingerprint, LockKey, SealCheck, ShieldCheck } from "@phosphor-icons/react";
+import { DownloadSimple, Fingerprint, LockKey, Printer, SealCheck, ShieldCheck } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { PACKET_HANDOFF_KEY } from "@/lib/handoff";
 import { createPasskey, PasskeyError } from "@/lib/passkey";
-import type { PartyView } from "@/lib/views";
+import type { CreatedShare, PartyView } from "@/lib/views";
 import { KeepLinkPanel } from "./keep-link-panel";
 import { LinkProblem } from "./link-problem";
 import { MonthSlip } from "./month-slip";
 import { PartyHeader } from "./party-header";
 import { ReviewPanel } from "./review-panel";
+import { SharePanel } from "./share-panel";
 import { Button, Notice, Spinner } from "./ui";
 import { usePartyView } from "./use-party-view";
 
@@ -120,6 +121,19 @@ function Records({ token, view, onView }: { token: string; view: PartyView; onVi
     }
   }
 
+  /** A printed copy gets its own share link, so its QR code keeps working until the worker stops it. */
+  async function print() {
+    setPacketBusy(true);
+    setPacketError(null);
+    try {
+      const share = await api<CreatedShare>(`/api/w/${token}/shares`, { method: "POST", body: { label: "Printed copy" } });
+      router.push(`${new URL(share.url).pathname}/print`);
+    } catch (err) {
+      setPacketError(err instanceof ApiError ? err.message : "Couldn't prepare the printable copy.");
+      setPacketBusy(false);
+    }
+  }
+
   return (
     <div className="grid gap-6">
       <PartyHeader view={view} token={token} onView={onView} eyebrow={`${employment.workerName} · your records`} title={waiting.length === 0 ? "Your salary records" : waiting.length === 1 ? "1 month needs your answer" : `${waiting.length} months need your answer`} />
@@ -138,9 +152,14 @@ function Records({ token, view, onView }: { token: string; view: PartyView; onVi
           <Button variant="secondary" disabled={packetBusy} onClick={download} icon={<DownloadSimple className="size-4" aria-hidden />}>
             Download
           </Button>
+          <Button variant="secondary" disabled={packetBusy} onClick={print} icon={<Printer className="size-4" aria-hidden />}>
+            Print
+          </Button>
         </div>
         {packetError && <div className="w-full"><Notice tone="breach">{packetError}</Notice></div>}
       </section>
+
+      <SharePanel token={token} />
 
       <div className="grid gap-4">
         <h2 className="sr-only">Months</h2>
