@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } fro
 import { createPublicClient, http } from "viem";
 import { publicChainConfig } from "@/lib/config";
 import { PACKET_HANDOFF_KEY } from "@/lib/handoff";
-import { dateLabel, periodLabel, REASON_SUMMARY, SEVERITY_TONE, sgd, shortHash } from "@/lib/format";
+import { dateLabel, METHOD_PHRASE, periodLabel, REASON_SUMMARY, SEVERITY_TONE, sgd, shortHash } from "@/lib/format";
 import { Button, Notice, Pill, Spinner, Stamp, stagger } from "./ui";
 
 export type VerificationResult = { packet: Packet; verification: PacketVerification; checkedAt: Date };
@@ -223,7 +223,8 @@ export function Report({ result, scrollIntoView = true }: { result: Result; scro
                     <p className="font-serif text-[17px] font-semibold">{periodLabel(period)}</p>
                     {record && (
                       <p className="figures text-[13px] text-muted">
-                        {sgd(record.record.amountPaidCents)} paid {dateLabel(record.record.paidOn)}
+                        {sgd(record.record.amountPaidCents)} paid {dateLabel(record.record.paidOn)} {METHOD_PHRASE[record.record.method]}
+                        {record.record.paymentReference && ` · ref ${record.record.paymentReference}`}
                       </p>
                     )}
                   </div>

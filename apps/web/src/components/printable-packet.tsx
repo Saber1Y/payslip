@@ -5,7 +5,7 @@ import { Printer } from "@phosphor-icons/react";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import { dateLabel, periodLabel, REASON_SUMMARY, sgd, WEEKDAYS } from "@/lib/format";
+import { dateLabel, METHOD_LABEL, periodLabel, REASON_SUMMARY, sgd, WEEKDAYS } from "@/lib/format";
 import type { SharedPacket } from "@/lib/views";
 import { Button, Notice, Spinner } from "./ui";
 import { usePacketVerification, type VerificationResult } from "./verifier";
@@ -152,7 +152,8 @@ function Sheet({ result, share, qr, verifyUrl, chainName, registry }: { result: 
                 <td className="figures py-2 pr-2 text-right whitespace-nowrap font-medium">{sgd(r.amountPaidCents)}</td>
                 <td className="py-2 pr-2 whitespace-nowrap">
                   {dateLabel(r.paidOn)}
-                  <span className="block text-[11px] text-muted">{r.method === "cash" ? "Cash" : "Bank transfer"}</span>
+                  <span className="block text-[11px] text-muted">{METHOD_LABEL[r.method]}</span>
+                  {r.paymentReference && <span className="figures block text-[10.5px] break-all whitespace-normal text-muted">Ref {r.paymentReference}</span>}
                 </td>
                 <td className="py-2 pr-2">
                   {!m.decision ? "Not answered" : m.decision.decision === "dispute" ? "Disputed" : m.decision.underProtest ? "Signed, under protest" : "Signed"}

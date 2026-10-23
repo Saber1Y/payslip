@@ -1,10 +1,10 @@
 "use client";
 
-import { expectedPayment, hashRecord, monthFlags, randomSalt, restDayPayDue, salaryRecordSchema, todayInSingapore, weekdaysInPeriod, type IsoDate, type SalaryRecord } from "@payslip/core";
+import { expectedPayment, hashRecord, monthFlags, PAYMENT_METHODS, paymentReferenceSchema, randomSalt, restDayPayDue, salaryRecordSchema, todayInSingapore, TRACEABLE_METHODS, weekdaysInPeriod, type IsoDate, type SalaryRecord } from "@payslip/core";
 import { Fingerprint, Plus, Trash } from "@phosphor-icons/react";
 import { useMemo, useState, type FormEvent } from "react";
 import { api, ApiError } from "@/lib/api";
-import { centsToInput, dateLabel, parseSgd, periodLabel, SEVERITY_TONE, sgd, WEEKDAYS } from "@/lib/format";
+import { centsToInput, dateLabel, METHOD_LABEL, parseSgd, periodLabel, SEVERITY_TONE, sgd, WEEKDAYS } from "@/lib/format";
 import { PasskeyError, signWithPasskey } from "@/lib/passkey";
 import type { EmploymentSummary, MonthView, PartyView } from "@/lib/views";
 import { Button, Field, inputClass, Notice, Pill, SlipRow } from "./ui";
@@ -26,6 +26,9 @@ export function RecordForm({ token, employment, month, onSaved, onCancel }: { to
   const [amountPaid, setAmountPaid] = useState<string | null>(null);
   const [paidOn, setPaidOn] = useState<string>(today < month.deadline ? today : month.deadline);
   const [method, setMethod] = useState<SalaryRecord["method"]>("cash");
+  const [reference, setReference] = useState("");
+  const traceable = TRACEABLE_METHODS.includes(method);
+  const paymentReference = traceable && reference.trim() ? reference.trim() : undefined;
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -35,6 +38,8 @@ export function RecordForm({ token, employment, month, onSaved, onCancel }: { to
   const deductionCents = deductions.map((d) => parseSgd(d.amount));
   const expected = salaryCents === null || restDayPayCents === null ? null : expectedPayment({ monthlySalaryCents: salaryCents, restDayPayCents, deductions: deductions.map((d, i) => ({ label: d.label, cents: deductionCents[i] ?? 0 })) });
   const amountPaidCents = amountPaid === null ? expected : parseSgd(amountPaid);
+
+  const referenceError = paymentReference ? (paymentReferenceSchema.safeParse(paymentReference).error?.issues[0]?.message ?? null) : null;
 
   const draft = useMemo((): SalaryRecord | null => {
     if (salaryCents === null || restDayPayCents === null || amountPaidCents === null || deductionCents.some((c) => c === null)) return null;
@@ -51,10 +56,11 @@ export function RecordForm({ token, employment, month, onSaved, onCancel }: { to
       amountPaidCents,
       paidOn,
       method,
+      paymentReference,
       salt: `0x${"00".repeat(32)}`,
     });
     return parsed.success ? parsed.data : null;
-  }, [salaryCents, restDayPayCents, amountPaidCents, deductionCents, employment.id, month.period, restDaysInMonth, restDaysWorked, deductions, paidOn, method]);
+  }, [salaryCents, restDayPayCents, amountPaidCents, deductionCents, employment.id, month.period, restDaysInMonth, restDaysWorked, deductions, paidOn, method, paymentReference]);
 
   const flags = draft ? monthFlags({ declaredMonthlySalaryCents: employment.declaredSalaryCents }, { period: month.period, record: draft, decision: null }, today).filter((f) => f.code !== "AWAITING_WORKER") : [];
   const breaches = flags.filter((f) => f.severity === "breach");
@@ -65,6 +71,7 @@ export function RecordForm({ token, employment, month, onSaved, onCancel }: { to
     if (salaryCents === null) return setError("Enter the monthly salary, for example 650");
     if (deductions.some((d, i) => !d.label.trim() || !deductionCents[i])) return setError("Each deduction needs a reason and an amount");
     if (paidOn > today) return setError("The payment date can't be in the future");
+    if (referenceError) return setError(`Transfer reference: ${referenceError}`);
     if (!draft) return setError("Check the amounts: they must be plain numbers like 650 or 650.50");
 
     const record: SalaryRecord = { ...draft, salt: randomSalt() };
@@ -118,15 +125,40 @@ export function RecordForm({ token, employment, month, onSaved, onCancel }: { to
         )}
         <fieldset className="grid content-start gap-1.5">
           <legend className="mb-1.5 text-[14px] font-medium">Payment method</legend>
-          <div className="flex gap-2">
-            {(["cash", "bank_transfer"] as const).map((m) => (
-              <label key={m} className={`press flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-[10px] border text-[14.5px] ${method === m ? "border-accent bg-accent-soft text-accent" : "border-rule-strong bg-sheet"}`}>
+          <div className="grid grid-cols-3 gap-2">
+            {PAYMENT_METHODS.map((m) => (
+              <label
+                key={m}
+                className={`press flex min-h-11 cursor-pointer items-center justify-center rounded-[10px] border px-1 text-center text-[13.5px] leading-tight has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus ${method === m ? "border-accent bg-accent-soft text-accent" : "border-rule-strong bg-sheet"}`}
+              >
                 <input type="radio" name={id("method")} value={m} checked={method === m} onChange={() => setMethod(m)} className="sr-only" />
-                {m === "cash" ? "Cash" : "Bank transfer"}
+                {METHOD_LABEL[m]}
               </label>
             ))}
           </div>
         </fieldset>
+        {traceable && (
+          <div className="sm:col-span-2">
+            <Field
+              label="Transfer reference"
+              htmlFor={id("reference")}
+              error={referenceError}
+              hint={`Copy it from the ${METHOD_LABEL[method]} details in your banking app. It goes into the signed record, so the worker can match it against their bank statement.`}
+            >
+              <input
+                id={id("reference")}
+                className={`${inputClass} figures`}
+                value={reference}
+                maxLength={64}
+                autoComplete="off"
+                spellCheck={false}
+                placeholder={method === "paynow" ? "PAYNOW-20261005-8812" : "FT26278ABC1234"}
+                aria-invalid={!!referenceError}
+                onChange={(e) => setReference(e.target.value)}
+              />
+            </Field>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-2">

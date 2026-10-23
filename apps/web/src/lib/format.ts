@@ -1,4 +1,4 @@
-import type { DisputeReason, FlagSeverity, Period } from "@payslip/core";
+import type { DisputeReason, FlagSeverity, PaymentMethod, Period } from "@payslip/core";
 import type { MonthState } from "./views";
 
 export function sgd(cents: number): string {
@@ -29,6 +29,10 @@ export function dateLabel(date: string): string {
   const [y, m, d] = date.split("-").map(Number) as [number, number, number];
   return `${d} ${(MONTHS[m - 1] ?? "").slice(0, 3)} ${y}`;
 }
+
+export const METHOD_LABEL: Record<PaymentMethod, string> = { cash: "Cash", bank_transfer: "Bank transfer", paynow: "PayNow" };
+/** For sentences: "paid 4 Jul 2026 in cash". */
+export const METHOD_PHRASE: Record<PaymentMethod, string> = { cash: "in cash", bank_transfer: "by bank transfer", paynow: "by PayNow" };
 
 export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 

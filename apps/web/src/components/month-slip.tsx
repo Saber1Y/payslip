@@ -4,7 +4,7 @@ import { explorerTxUrl } from "@payslip/chain";
 import { expectedPayment, type SalaryRecord } from "@payslip/core";
 import { ArrowSquareOut, LinkSimple } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
-import { dateLabel, periodLabel, REASON_SUMMARY, SEVERITY_TONE, sgd, shortHash, STATE_STAMP } from "@/lib/format";
+import { dateLabel, METHOD_LABEL, periodLabel, REASON_SUMMARY, SEVERITY_TONE, sgd, shortHash, STATE_STAMP } from "@/lib/format";
 import type { MonthView } from "@/lib/views";
 import { Pill, SlipRow, Stamp, stagger } from "./ui";
 
@@ -23,7 +23,8 @@ export function RecordLines({ record }: { record: SalaryRecord }) {
         <SlipRow label="Should add up to" value={sgd(expectedPayment(record))} />
       )}
       <SlipRow emphasis label="Amount paid" value={sgd(record.amountPaidCents)} />
-      <SlipRow label="Paid on" value={`${dateLabel(record.paidOn)}, ${record.method === "cash" ? "cash" : "bank transfer"}`} />
+      <SlipRow label="Paid on" value={`${dateLabel(record.paidOn)}, ${METHOD_LABEL[record.method]}`} />
+      {record.paymentReference && <SlipRow label="Transfer reference" value={record.paymentReference} />}
     </div>
   );
 }
