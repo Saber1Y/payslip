@@ -296,3 +296,44 @@ export async function workerPacket(token: string): Promise<Packet> {
     generatedAt: new Date(),
   });
 }
+
+/** How long a recovery challenge stays valid. Long enough for a passkey prompt, short enough to be useless later. */
+const RECOVERY_TTL_MS = 5 * 60_000;
+
+/** Starts passkey recovery: a random, single-use challenge the passkey must sign. */
+export async function startRecovery(): Promise<{ challengeId: string; challenge: Hex; rpId: string }> {
+  const challengeId = newToken();
+  const challenge = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
+  await getStore().createRecoveryChallenge(challengeId, challenge, new Date(Date.now() + RECOVERY_TTL_MS));
+  return { challengeId, challenge, rpId: relyingParty().id };
+}
+
+const finishRecoverySchema = z.object({ challengeId: z.string().regex(/^[A-Za-z0-9_-]{43}$/), assertion: assertionSchema });
+
+/**
+ * Finishes recovery. The challenge is consumed before anything else, so one signature can never be used
+ * twice. The passkey's credential finds the employment and the role; the signature is checked against the
+ * key stored for that role. The party then gets a fresh link and the old one stops working.
+ */
+export async function finishRecovery(input: unknown): Promise<{ path: string; role: "worker" | "employer"; name: string }> {
+  const { challengeId, assertion } = finishRecoverySchema.parse(input);
+  const store = getStore();
+  const challenge = await store.consumeRecoveryChallenge(challengeId);
+  if (!challenge) throw new ConflictError("This sign-in expired. Try again.");
+
+  const found = await store.findByCredential(assertion.credentialId);
+  if (!found) throw new NotFoundError("This passkey isn't linked to any Payslip records");
+  const { row, role } = found;
+  const key = role === "worker" ? row.workerKey : row.employerKey;
+  if (!key) throw new NotFoundError("This passkey isn't linked to any Payslip records");
+
+  const check = await verifyAssertion(assertion, challenge as Hex, key, row.rp);
+  if (!check.ok) {
+    console.warn("[payslip] recovery signature rejected:", check.reason);
+    throw new PayslipError("INVALID_SIGNATURE", "This passkey sign-in could not be verified. Try again.", "assertion");
+  }
+
+  const token = newToken();
+  await store.rotateToken(row.id, role, hashToken(token));
+  return { path: `/${role === "worker" ? "w" : "e"}/${token}`, role, name: role === "worker" ? row.workerName : row.employerName };
+}
