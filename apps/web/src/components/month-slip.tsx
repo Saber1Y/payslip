@@ -50,7 +50,9 @@ export function AnchorLine({ label, tx }: { label: string; tx: string | null }) 
 /** One month as a slip: header with the stamp, the record, MOM flags, and where it is anchored. */
 export function MonthSlip({ month, index, actions, children, stampLabel }: { month: MonthView; index: number; actions?: ReactNode; children?: ReactNode; stampLabel?: string }) {
   const stamp = STATE_STAMP[month.state];
-  const flags = month.flags.filter((f) => f.code !== "AWAITING_WORKER" && f.code !== "DISPUTED" && f.code !== "MISSING");
+  // The stamp, the dispute box and the under-protest pill already show these states.
+  const SHOWN_ELSEWHERE = new Set(["AWAITING_WORKER", "DISPUTED", "MISSING", "UNDER_PROTEST"]);
+  const flags = month.flags.filter((f) => !SHOWN_ELSEWHERE.has(f.code));
   return (
     <article className="slip enter overflow-hidden" style={stagger(index)} aria-labelledby={`m-${month.period}`}>
       <header className="flex items-start justify-between gap-3 px-5 pt-4 pb-3.5">
