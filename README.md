@@ -33,6 +33,7 @@ It keeps evidence of what was agreed and paid; it is not legal advice, it does n
   - [A claim packet the worker owns](#a-claim-packet-the-worker-owns)
   - [Verification without trusting Payslip](#verification-without-trusting-payslip)
   - [Recovery with a passkey](#recovery-with-a-passkey)
+  - [Sharing and printing](#sharing-and-printing)
 - [Architecture](#architecture)
 - [Component by component](#component-by-component)
 - [Safety, enforced in code](#safety-enforced-in-code)
@@ -145,6 +146,15 @@ On `/recover`, the worker (or the employer) signs in with the passkey they alrea
 The server signs nothing and stores no password: it issues a single-use challenge, finds the employment by the credential that answered, checks the signature against the key stored for that role, and issues a fresh link.
 The old link stops working at the same moment, so a leaked link is also cut off.
 
+### Sharing and printing
+
+The worker can give each recipient, such as HOME, the Centre for Domestic Employees, MOM or a lawyer, their own link to a frozen copy of the packet.
+The recipient opens `/s/<link>` and the packet is verified in their own browser against the chain, exactly as on `/verify`.
+The worker sees every active link and can stop any one of them without affecting the others.
+
+*Print* produces an A4 claim packet for officers who work on paper: the months, what each should add up to, the worker's answers, the MOM flags, the chain result with the time it was checked, and a fingerprint appendix.
+Its QR code opens the live shared link, so anyone holding the paper can check it again; stopping that link also stops the QR code.
+
 ## Architecture
 
 Two decisions shape everything else:
@@ -225,6 +235,7 @@ flowchart TB
 | A recovery sign-in cannot be replayed | Each recovery challenge is random, single-use and expires after 5 minutes; it is consumed before the signature is checked |
 | Recovery cannot hand out someone else's records | The employment is found by the signing credential, and the signature must verify against the key stored for that party |
 | A recovered link replaces the old one | Recovery rotates the party's token hash, so the previous link returns 404 |
+| A shared link only reveals what the worker chose to share | Shares are frozen snapshots behind their own 256-bit link, stored as a hash; each can be stopped on its own, and only by that worker |
 | A verifier cannot be pointed at a fake registry | The verify page always reads this site's configured registry and warns when a packet names another one |
 | Nothing private is public | Only salted hashes and key hashes go on-chain |
 
@@ -284,6 +295,7 @@ Those keys carry `authenticator: "software-demo"` inside the hashed employment, 
 | Translations (Bahasa Indonesia, Tagalog, Burmese) | Not yet established |
 | Corrected re-proposal after a dispute | Not yet established - one record per month |
 | Passkey recovery of a lost link | Real - tested in the browser with the simulated authenticator: recovery, replay, wrong challenge, unknown passkey, employer recovery, old link revoked |
+| Share links and printable packet | Real - share, open, print to PDF with QR, stop one link while another keeps working, and cross-worker revoke refused, all tested in the browser |
 | Encrypted worker backup and NGO recovery | Not yet established |
 
 The biggest open item is hosting the app and testing on real devices.
@@ -421,7 +433,6 @@ The receipt and verification patterns are adapted from RelayMesh, by the same au
 - Corrected re-proposals after a dispute, keeping the disputed version on record.
 - Rate limiting for the recovery endpoints.
 - Encrypted worker backups with recovery through a partner NGO, for a worker who also loses their passkey.
-- A printable claim packet alongside the JSON file.
 - A pilot with HOME or the Centre for Domestic Employees.
 
 ## Disclaimer and license
