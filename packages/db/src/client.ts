@@ -12,6 +12,9 @@ export interface DbHandle {
 export function connectDb(url: string, options: { max?: number } = {}): DbHandle {
   if (!/^postgres(ql)?:\/\//.test(url)) throw new Error("Database URL must start with postgres:// or postgresql://");
   // numeric(78,0) and bigint columns are parsed by Drizzle's column modes, not by the driver.
-  const client = postgres(url, { max: options.max ?? 10, onnotice: () => {} });
+  // A PgBouncer-style pooler (Neon's "-pooler" host) runs in transaction mode, where prepared statements
+  // can land on a different backend. Turn them off there; direct connections keep them.
+  const pooled = /-pooler\./.test(new URL(url).hostname);
+  const client = postgres(url, { max: options.max ?? 10, onnotice: () => {}, prepare: !pooled });
   return { db: drizzle(client, { schema }), close: () => client.end({ timeout: 5 }) };
 }
