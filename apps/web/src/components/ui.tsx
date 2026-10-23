@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Info, SpinnerGap, WarningCircle } from "@phosphor-icons/react";
+import { Check, CheckCircle, Copy, Info, SpinnerGap, WarningCircle } from "@phosphor-icons/react";
 import { useState, type ComponentProps, type CSSProperties, type ReactNode } from "react";
 import type { Tone } from "@/lib/format";
 
@@ -70,7 +70,7 @@ export function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
 }
 
 export function Notice({ tone = "neutral", title, children }: { tone?: Tone; title?: string; children?: ReactNode }) {
-  const Icon = tone === "neutral" ? Info : WarningCircle;
+  const Icon = tone === "neutral" ? Info : tone === "signed" ? CheckCircle : WarningCircle;
   return (
     <div role={tone === "breach" ? "alert" : "status"} className={`flex gap-3 rounded-xl px-4 py-3 text-[14px] ${PILL[tone]}`}>
       <Icon className="mt-0.5 size-4 shrink-0" weight="bold" aria-hidden />

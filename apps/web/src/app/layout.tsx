@@ -54,6 +54,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <footer className="mx-auto w-full max-w-[1080px] px-4 py-8 text-[13px] text-muted sm:px-8">
             <div className="perforation mb-5" />
+            <p className="mb-2">
+              Lost your link?{" "}
+              <Link href="/recover" className="text-accent underline underline-offset-2">
+                Find your records with your passkey
+              </Link>
+              .
+            </p>
             <p>
               Testnet software. Payslip helps people keep evidence of what was agreed and paid. It is not legal advice and does not replace MOM&apos;s
               processes.

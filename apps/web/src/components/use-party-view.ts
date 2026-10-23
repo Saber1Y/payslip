@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import { rememberRecordsLink } from "@/lib/remembered-link";
+import { forgetRecordsLink, rememberRecordsLink } from "@/lib/remembered-link";
 import type { PartyView } from "@/lib/views";
 
 /** Loads the employer or worker view for a link token, with an explicit refresh and replace. */
@@ -23,6 +23,7 @@ export function usePartyView(role: "e" | "w", token: string) {
         });
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
+        if (err instanceof ApiError && err.status === 404) forgetRecordsLink(`/${role}/${token}`);
         setError(err instanceof ApiError ? { status: err.status, message: err.message } : { status: 0, message: "Couldn't load this page." });
       }
     },

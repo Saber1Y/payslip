@@ -34,6 +34,17 @@ export function readRecordsLink(): RememberedLink | null {
   }
 }
 
+/** Forgets the remembered link if it is `path`, for example after that link was replaced by recovery. */
+export function forgetRecordsLink(path: string): void {
+  try {
+    if (readRecordsLink()?.path !== path) return;
+    localStorage.removeItem(KEY);
+    window.dispatchEvent(new Event(EVENT));
+  } catch {
+    // Storage unavailable: nothing was remembered.
+  }
+}
+
 export function onRecordsLinkChange(listener: () => void): () => void {
   window.addEventListener(EVENT, listener);
   window.addEventListener("storage", listener);

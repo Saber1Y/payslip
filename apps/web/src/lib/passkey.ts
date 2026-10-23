@@ -64,7 +64,28 @@ export async function signWithPasskey(rpId: string, credentialId: string, hash: 
   } catch (error) {
     throw explain(error);
   }
-  if (!(credential instanceof PublicKeyCredential)) throw new PasskeyError("Nothing was signed.");
+  return toAssertion(credential, "Nothing was signed.");
+}
+
+/**
+ * Signs in with whichever Payslip passkey this device holds, without knowing its id in advance. The
+ * browser offers its saved passkeys for this site and the person picks one. Used to recover a lost link.
+ */
+export async function signInWithPasskey(rpId: string, challenge: Hex): Promise<Assertion> {
+  if (!passkeysSupported()) throw new PasskeyError("This browser does not support passkeys.");
+  let credential: Credential | null;
+  try {
+    credential = await navigator.credentials.get({
+      publicKey: { rpId, challenge: challengeFor(challenge), userVerification: "required", timeout: 120_000 },
+    });
+  } catch (error) {
+    throw explain(error);
+  }
+  return toAssertion(credential, "No passkey was used.");
+}
+
+function toAssertion(credential: Credential | null, missing: string): Assertion {
+  if (!(credential instanceof PublicKeyCredential)) throw new PasskeyError(missing);
   const response = credential.response as AuthenticatorAssertionResponse;
   return {
     credentialId: base64UrlEncode(new Uint8Array(credential.rawId)),
