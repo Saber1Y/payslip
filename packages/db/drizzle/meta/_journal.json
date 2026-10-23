@@ -15,6 +15,13 @@
       "when": 1792763262429,
       "tag": "0001_passkey_recovery",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792764293418,
+      "tag": "0002_packet_shares",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import type { Assertion, Decision, Employment, PublicKeyRef, RelyingParty, SalaryRecord } from "@payslip/core";
+import type { Assertion, Decision, Employment, Packet, PublicKeyRef, RelyingParty, SalaryRecord } from "@payslip/core";
 import { sql } from "drizzle-orm";
 import { index, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
@@ -71,3 +71,26 @@ export const recoveryChallenges = pgTable("recovery_challenges", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   usedAt: timestamp("used_at", { withTimezone: true }),
 });
+
+/**
+ * Claim packets a worker chose to share, for example with an NGO. Each share is a frozen snapshot behind
+ * its own link (stored only as a hash), so the worker can revoke one recipient without affecting others.
+ * Whoever opens it still verifies the packet in their own browser against the chain.
+ */
+export const shares = pgTable(
+  "shares",
+  {
+    id: serial("id").primaryKey(),
+    employmentId: text("employment_id")
+      .notNull()
+      .references(() => employments.id),
+    tokenHash: text("token_hash").notNull().unique(),
+    label: text("label").notNull(),
+    packet: jsonb("packet").$type<Packet>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (t) => [index("shares_employment").on(t.employmentId)],
+);
+
+export type ShareRow = typeof shares.$inferSelect;

@@ -1,7 +1,7 @@
-import type { Assertion, Decision, Employment, PublicKeyRef, RelyingParty, SalaryRecord } from "@payslip/core";
-import { and, asc, eq, gt, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
+import type { Assertion, Decision, Employment, Packet, PublicKeyRef, RelyingParty, SalaryRecord } from "@payslip/core";
+import { and, asc, desc, eq, gt, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import type { Db } from "./client";
-import { employments, records, recoveryChallenges, type EmploymentRow, type RecordRow } from "./schema";
+import { employments, records, recoveryChallenges, shares, type EmploymentRow, type RecordRow, type ShareRow } from "./schema";
 
 export interface NewEmployment {
   id: string;
@@ -126,6 +126,31 @@ export function createStore(db: Db) {
         .update(employments)
         .set(role === "worker" ? { workerTokenHash: tokenHash } : { employerTokenHash: tokenHash })
         .where(eq(employments.id, id));
+    },
+
+    async createShare(input: { employmentId: string; tokenHash: string; label: string; packet: Packet }): Promise<ShareRow> {
+      const [row] = await db.insert(shares).values(input).returning();
+      if (!row) throw new Error("Share insert returned nothing");
+      return row;
+    },
+
+    async listShares(employmentId: string): Promise<ShareRow[]> {
+      return db.query.shares.findMany({ where: eq(shares.employmentId, employmentId), orderBy: [desc(shares.createdAt)] });
+    },
+
+    /** An active share by its link. Revoked shares are treated as if they never existed. */
+    async findShare(tokenHash: string): Promise<ShareRow | null> {
+      return (await db.query.shares.findFirst({ where: and(eq(shares.tokenHash, tokenHash), isNull(shares.revokedAt)) })) ?? null;
+    },
+
+    /** Revokes one of this employment's shares. Returns false if it was not found or already revoked. */
+    async revokeShare(employmentId: string, id: number): Promise<boolean> {
+      const rows = await db
+        .update(shares)
+        .set({ revokedAt: new Date() })
+        .where(and(eq(shares.id, id), eq(shares.employmentId, employmentId), isNull(shares.revokedAt)))
+        .returning({ id: shares.id });
+      return rows.length > 0;
     },
   };
 }
