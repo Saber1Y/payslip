@@ -159,6 +159,24 @@
   animation: stamp-in 420ms var(--ease-out) both;
 }
 
+/* Paper: white page, no ruling, A4 margins, and no fade-in left half-finished on the printout. */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  body {
+    background: #fff;
+  }
+  body::before {
+    display: none;
+  }
+  .enter {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .enter {
     transform: none !important;

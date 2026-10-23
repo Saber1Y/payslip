@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <div className="relative z-10 flex min-h-[100dvh] flex-col">
-          <header className="mx-auto flex w-full max-w-[1080px] items-center justify-between gap-4 px-4 pt-5 sm:px-8">
+          <header className="mx-auto flex w-full max-w-[1080px] items-center justify-between gap-4 px-4 pt-5 sm:px-8 print:hidden">
             <Link href="/" className="press flex items-center gap-2.5 rounded-md" aria-label="Payslip home">
               <Logo />
               <span className="font-serif text-[19px] font-semibold tracking-[-0.01em]">Payslip</span>
@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main id="main" className="flex-1">
             {children}
           </main>
-          <footer className="mx-auto w-full max-w-[1080px] px-4 py-8 text-[13px] text-muted sm:px-8">
+          <footer className="mx-auto w-full max-w-[1080px] px-4 py-8 text-[13px] text-muted sm:px-8 print:hidden">
             <div className="perforation mb-5" />
             <p className="mb-2">
               Lost your link?{" "}
