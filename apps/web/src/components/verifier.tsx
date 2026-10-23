@@ -4,28 +4,26 @@ import { createRegistryReader, explorerAddressUrl, toViemChain } from "@payslip/
 import { packetSchema, todayInSingapore, verifyPacket, type Packet, type PacketVerification } from "@payslip/core";
 import { CheckCircle, FileArrowUp, ShieldCheck, WarningOctagon } from "@phosphor-icons/react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { createPublicClient, http } from "viem";
 import { publicChainConfig } from "@/lib/config";
 import { PACKET_HANDOFF_KEY } from "@/lib/handoff";
 import { dateLabel, periodLabel, REASON_SUMMARY, SEVERITY_TONE, sgd, shortHash } from "@/lib/format";
 import { Button, Notice, Pill, Spinner, Stamp, stagger } from "./ui";
 
-type Result = { packet: Packet; verification: PacketVerification; checkedAt: Date };
+export type VerificationResult = { packet: Packet; verification: PacketVerification; checkedAt: Date };
+type Result = VerificationResult;
 
 /**
  * Verifies a claim packet entirely in this browser: hashes are recomputed here, passkey signatures are
  * checked with WebCrypto, and anchors are read straight from the chain RPC. Payslip's server is not asked.
  * The registry is always this site's configured one, never the address the packet claims.
  */
-export function Verifier() {
-  const params = useSearchParams();
-  const config = publicChainConfig();
+export function usePacketVerification() {
+  const config = useMemo(() => publicChainConfig(), []);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
 
   const verify = useCallback(
     async (raw: unknown) => {
@@ -48,6 +46,16 @@ export function Verifier() {
     },
     [config],
   );
+
+  return { config, result, error, setError, busy, verify };
+}
+
+/** The upload-a-file verifier on /verify. */
+export function Verifier() {
+  const params = useSearchParams();
+  const { config, result, error, setError, busy, verify } = usePacketVerification();
+  const [dragging, setDragging] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (params.get("from") !== "records") return;
@@ -103,27 +111,35 @@ export function Verifier() {
       {error && <Notice tone="breach" title="Couldn't check this packet">{error}</Notice>}
       {result && <Report result={result} />}
 
-      <section className="grid gap-2 text-[14px] text-muted">
-        <h2 className="font-serif text-lg font-semibold text-ink">How the check works</h2>
-        <ol className="grid list-decimal gap-1.5 pl-5">
-          <li>Each record is fingerprinted again here, in your browser.</li>
-          <li>The employer&apos;s and worker&apos;s passkey signatures are checked against those fingerprints.</li>
-          <li>The fingerprints and both public keys are compared with what was anchored on {config.name}, read directly from the chain.</li>
-          <li>Months with no record after MOM&apos;s 7-day deadline, and anchored months left out of the file, are listed.</li>
-        </ol>
-        <p>
-          Registry contract{" "}
-          {explorerAddressUrl(config, config.registry) ? (
-            <a className="figures text-accent underline underline-offset-2" href={explorerAddressUrl(config, config.registry) ?? undefined} target="_blank" rel="noreferrer">
-              {shortHash(config.registry)}
-            </a>
-          ) : (
-            <span className="figures text-ink">{config.registry}</span>
-          )}{" "}
-          on {config.name}.
-        </p>
-      </section>
+      <VerificationNotes />
     </div>
+  );
+}
+
+/** How the check works, and which registry it trusts. Shown wherever a packet is verified. */
+export function VerificationNotes() {
+  const config = publicChainConfig();
+  return (
+    <section className="grid gap-2 text-[14px] text-muted">
+      <h2 className="font-serif text-lg font-semibold text-ink">How the check works</h2>
+      <ol className="grid list-decimal gap-1.5 pl-5">
+        <li>Each record is fingerprinted again here, in your browser.</li>
+        <li>The employer&apos;s and worker&apos;s passkey signatures are checked against those fingerprints.</li>
+        <li>The fingerprints and both public keys are compared with what was anchored on {config.name}, read directly from the chain.</li>
+        <li>Months with no record after MOM&apos;s 7-day deadline, and anchored months left out of the file, are listed.</li>
+      </ol>
+      <p>
+        Registry contract{" "}
+        {explorerAddressUrl(config, config.registry) ? (
+          <a className="figures text-accent underline underline-offset-2" href={explorerAddressUrl(config, config.registry) ?? undefined} target="_blank" rel="noreferrer">
+            {shortHash(config.registry)}
+          </a>
+        ) : (
+          <span className="figures text-ink">{config.registry}</span>
+        )}{" "}
+        on {config.name}.
+      </p>
+    </section>
   );
 }
 
@@ -133,11 +149,12 @@ const VERDICT = {
   not_anchored: { label: "Not anchored", tone: "waiting" as const },
 };
 
-function Report({ result }: { result: Result }) {
+export function Report({ result, scrollIntoView = true }: { result: Result; scrollIntoView?: boolean }) {
   const top = useRef<HTMLElement>(null);
   useEffect(() => {
+    if (!scrollIntoView) return;
     top.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
-  }, [result]);
+  }, [result, scrollIntoView]);
   const config = publicChainConfig();
   const { packet, verification: v } = result;
   const tampered = v.months.filter((m) => m.verdict === "tampered").length;
