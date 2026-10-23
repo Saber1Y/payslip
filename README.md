@@ -1,7 +1,7 @@
 # Payslip
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
-![Tests](https://img.shields.io/badge/tests-40%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-44%20passing-brightgreen)
 ![Onchain](https://img.shields.io/badge/onchain-Base%20Sepolia-blue)
 ![Loop](https://img.shields.io/badge/loop-record%20%E2%86%92%20co--sign%20%E2%86%92%20anchor%20%E2%86%92%20verify-blueviolet)
 ![Stack](https://img.shields.io/badge/stack-Next.js%20+%20Postgres%20+%20passkeys%20+%20viem%20+%20Solidity-orange)
@@ -28,6 +28,7 @@ It keeps evidence of what was agreed and paid; it is not legal advice, it does n
 - [The one rule](#the-one-rule)
 - [What Payslip does](#what-payslip-does)
   - [Co-signed monthly records](#co-signed-monthly-records)
+  - [Payment proof](#payment-proof)
   - [MOM rule checks](#mom-rule-checks)
   - [Disputes that cannot be erased](#disputes-that-cannot-be-erased)
   - [A claim packet the worker owns](#a-claim-packet-the-worker-owns)
@@ -106,6 +107,13 @@ record -> canonical JSON -> keccak256 ("payslip.record.v1") -> passkey signature
 
 The record, the signature and the anchor transaction are all real; the server refuses a record whose signature does not verify.
 
+### Payment proof
+
+Payslip never moves money: salary is still paid in cash, by bank transfer or by PayNow, as MOM requires.
+For a transfer, the employer copies the bank's or PayNow's own reference into the record.
+It is part of the signed, fingerprinted record, so the worker can match it against their bank statement and an officer can ask the bank about that exact transfer.
+A reference is only accepted for bank transfers and PayNow, is stored exactly as typed (never rewritten before hashing), and is optional, so records made before it existed keep their fingerprints.
+
 ### MOM rule checks
 
 Each month is checked against the MOM rules visible in the record itself, both while the employer types and on every view.
@@ -119,6 +127,7 @@ Each month is checked against the MOM rules visible in the record itself, both w
 | `UNDERPAID` | Paid less than the record's own total |
 | `BELOW_DECLARED_SALARY` | Salary below what was declared to MOM |
 | `DEDUCTIONS` | Deductions present (shown for review) |
+| `NO_PAYMENT_REFERENCE` | Paid by bank transfer or PayNow with no transfer reference (shown for review) |
 
 The salary / 26 rule matches MOM's own worked example ($650 salary, 2 rest days worked, $50 owed), which is a unit test.
 
@@ -295,6 +304,7 @@ Those keys carry `authenticator: "software-demo"` inside the hashed employment, 
 | Translations (Bahasa Indonesia, Tagalog, Burmese) | Not yet established |
 | Corrected re-proposal after a dispute | Not yet established - one record per month |
 | Passkey recovery of a lost link | Real - tested in the browser with the simulated authenticator: recovery, replay, wrong challenge, unknown passkey, employer recovery, old link revoked |
+| Payment proof | Real - PayNow and bank-transfer references in the signed record, shown to the worker, the verifier and on paper; a reference on a cash payment is refused by the server; older records still verify |
 | Share links and printable packet | Real - share, open, print to PDF with QR, stop one link while another keeps working, and cross-worker revoke refused, all tested in the browser |
 | Encrypted worker backup and NGO recovery | Not yet established |
 
@@ -305,7 +315,7 @@ The live flow ran against Base Sepolia in a desktop browser with a simulated aut
 
 | Suite | Tests | Covers |
 | --- | --- | --- |
-| `packages/core` (Vitest) | 28 | Periods and deadlines, MOM flags including MOM's worked example, record and decision validation, passkey verification, claim packet verification (honest, altered, re-signed, swapped keys, omitted and missing months) |
+| `packages/core` (Vitest) | 32 | Periods and deadlines, MOM flags including MOM's worked example, record and decision validation, passkey verification, claim packet verification (honest, altered, re-signed, swapped keys, omitted and missing months) |
 | `packages/chain` (Vitest + Anvil) | 3 | Deploys the real contract and verifies a packet from chain state alone; refuses undecided proposals |
 | `contracts` (Foundry) | 9 | Opening, proposing, append-only decisions, recorder gating, period validation, entry cap, a fuzz test |
 
