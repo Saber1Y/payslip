@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { MyRecordsLink } from "@/components/my-records-link";
 import "./globals.css";
 
 const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-sans" });
@@ -38,8 +39,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="font-serif text-[19px] font-semibold tracking-[-0.01em]">Payslip</span>
             </Link>
             <nav className="flex items-center gap-1 text-sm">
-              <Link href="/verify" className="press rounded-full px-3 py-1.5 text-muted hover:bg-sheet hover:text-ink">
-                Verify a packet
+              <MyRecordsLink />
+              <Link href="/verify" className="press rounded-full px-3 py-1.5 whitespace-nowrap text-muted hover:bg-sheet hover:text-ink">
+                <span className="sm:hidden">Verify</span>
+                <span className="hidden sm:inline">Verify a packet</span>
               </Link>
               <Link href="/start" className="press hidden rounded-full px-3 py-1.5 text-muted hover:bg-sheet hover:text-ink sm:inline">
                 For employers

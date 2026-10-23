@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { rememberRecordsLink } from "@/lib/remembered-link";
 import type { PartyView } from "@/lib/views";
 
 /** Loads the employer or worker view for a link token, with an explicit refresh and replace. */
@@ -12,8 +13,14 @@ export function usePartyView(role: "e" | "w", token: string) {
   const load = useCallback(
     async (signal?: AbortSignal) => {
       try {
-        setView(await api<PartyView>(`/api/${role}/${token}`, { signal }));
+        const next = await api<PartyView>(`/api/${role}/${token}`, { signal });
+        setView(next);
         setError(null);
+        rememberRecordsLink({
+          path: `/${role}/${token}`,
+          role: next.role,
+          name: next.role === "worker" ? next.employment.workerName : next.employment.employerName,
+        });
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         setError(err instanceof ApiError ? { status: err.status, message: err.message } : { status: 0, message: "Couldn't load this page." });
