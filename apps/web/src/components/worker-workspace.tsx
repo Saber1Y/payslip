@@ -7,6 +7,7 @@ import { api, ApiError } from "@/lib/api";
 import { PACKET_HANDOFF_KEY } from "@/lib/handoff";
 import { createPasskey, PasskeyError } from "@/lib/passkey";
 import type { PartyView } from "@/lib/views";
+import { KeepLinkPanel } from "./keep-link-panel";
 import { LinkProblem } from "./link-problem";
 import { MonthSlip } from "./month-slip";
 import { PartyHeader } from "./party-header";
@@ -122,6 +123,8 @@ function Records({ token, view, onView }: { token: string; view: PartyView; onVi
   return (
     <div className="grid gap-6">
       <PartyHeader view={view} token={token} onView={onView} eyebrow={`${employment.workerName} · your records`} title={waiting.length === 0 ? "Your salary records" : waiting.length === 1 ? "1 month needs your answer" : `${waiting.length} months need your answer`} />
+
+      <KeepLinkPanel token={token} />
 
       <section className="slip flex flex-wrap items-center justify-between gap-3 p-5">
         <div className="grid gap-0.5">
