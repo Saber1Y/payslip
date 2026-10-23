@@ -109,7 +109,7 @@ const months: { record: SalaryRecord; answer: Omit<Decision, "version" | "record
   { record: base("2026-05", { restDaysInMonth: 5, restDaysTaken: 4, restDaysWorked: 1, restDayPayCents: restDayPayDue(salary, 1), amountPaidCents: salary + restDayPayDue(salary, 1), paidOn: "2026-05-31" }), answer: { decision: "acknowledge", reasons: [], underProtest: false } },
   { record: base("2026-06", { restDaysTaken: 2, restDaysWorked: 2, paidOn: "2026-07-04" }), answer: { decision: "dispute", reasons: ["rest_day_pay_missing"], underProtest: false } },
   { record: base("2026-07", { deductions: [{ label: "Broken vase", cents: 5_000 }], amountPaidCents: 60_000, paidOn: "2026-07-31" }), answer: { decision: "acknowledge", reasons: [], underProtest: true } },
-  { record: base("2026-08", { restDaysInMonth: 5, restDaysTaken: 5, paidOn: "2026-09-12", method: "bank_transfer" }), answer: { decision: "acknowledge", reasons: [], underProtest: false } },
+  { record: base("2026-08", { restDaysInMonth: 5, restDaysTaken: 5, paidOn: "2026-09-12", method: "paynow", paymentReference: "PAYNOW-20260912-4471" }), answer: { decision: "acknowledge", reasons: [], underProtest: false } },
   // September has no record at all: its deadline (7 October) has passed, so it shows as missing.
 ];
 
