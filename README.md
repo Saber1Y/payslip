@@ -425,7 +425,16 @@ Run the migrations against the unpooled Neon URL before deploying a schema chang
 ```bash
 cd Payslip
 vercel env pull .env.vercel-production --environment production
-vercel deploy --prod
+```
+
+```bash
+cd Payslip
+DATABASE_URL="$(grep '^DATABASE_URL_UNPOOLED=' .env.vercel-production | cut -d= -f2- | tr -d '"')" pnpm exec tsx packages/db/src/migrate-cli.ts
+```
+
+```bash
+cd Payslip
+rm .env.vercel-production && vercel deploy --prod
 ```
 
 ## Project layout
