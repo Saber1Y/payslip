@@ -12,3 +12,4 @@ contracts/out/
 contracts/broadcast/
 *.tsbuildinfo
 next-env.d.ts
+.vercel
