@@ -49,3 +49,22 @@ export interface CreatedEmployment {
   employerUrl: string;
   inviteUrl: string;
 }
+
+export interface ShareView {
+  id: number;
+  label: string;
+  createdAt: string;
+  revokedAt: string | null;
+  months: number;
+}
+
+export interface CreatedShare extends ShareView {
+  /** Shown once: only a hash of the link is stored. */
+  url: string;
+}
+
+export interface SharedPacket {
+  packet: unknown;
+  label: string;
+  sharedAt: string;
+}

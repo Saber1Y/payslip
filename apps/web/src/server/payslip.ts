@@ -23,11 +23,11 @@ import {
   type Packet,
   type Period,
 } from "@payslip/core";
-import type { EmploymentRow, RecordRow } from "@payslip/db";
+import type { EmploymentRow, RecordRow, ShareRow } from "@payslip/db";
 import { bytesToHex, type Hex } from "viem";
 import { z } from "zod";
 import { publicChainConfig, relyingParty } from "@/lib/config";
-import type { CreatedEmployment, EmploymentSummary, MonthView, PartyView } from "@/lib/views";
+import type { CreatedEmployment, CreatedShare, EmploymentSummary, MonthView, PartyView, SharedPacket, ShareView } from "@/lib/views";
 import { anchorErrorMessage } from "./http";
 import { getReader, getStore, getWriter } from "./services";
 import { hashToken, newToken } from "./tokens";
@@ -336,4 +336,36 @@ export async function finishRecovery(input: unknown): Promise<{ path: string; ro
   const token = newToken();
   await store.rotateToken(row.id, role, hashToken(token));
   return { path: `/${role === "worker" ? "w" : "e"}/${token}`, role, name: role === "worker" ? row.workerName : row.employerName };
+}
+
+const createShareSchema = z.object({ label: z.string().trim().min(1).max(60) });
+
+function shareView(row: ShareRow): ShareView {
+  return { id: row.id, label: row.label, createdAt: row.createdAt.toISOString(), revokedAt: row.revokedAt?.toISOString() ?? null, months: row.packet.months.length };
+}
+
+/** Freezes the worker's current packet behind a new link they can give to one recipient. */
+export async function createShare(token: string, input: unknown): Promise<CreatedShare> {
+  const { label } = createShareSchema.parse(input);
+  const row = await findEmployment("worker", token);
+  const packet = await workerPacket(token);
+  const shareToken = newToken();
+  const share = await getStore().createShare({ employmentId: row.id, tokenHash: hashToken(shareToken), label, packet });
+  return { ...shareView(share), url: `${row.rp.origin}/s/${shareToken}` };
+}
+
+export async function listShares(token: string): Promise<ShareView[]> {
+  const row = await findEmployment("worker", token);
+  return (await getStore().listShares(row.id)).map(shareView);
+}
+
+export async function revokeShare(token: string, id: number): Promise<void> {
+  const row = await findEmployment("worker", token);
+  if (!(await getStore().revokeShare(row.id, id))) throw new NotFoundError("That share was not found or is already revoked");
+}
+
+export async function readShare(shareToken: string): Promise<SharedPacket> {
+  const share = await getStore().findShare(hashToken(shareToken));
+  if (!share) throw new NotFoundError("This shared packet is not available. It may have been revoked.");
+  return { packet: share.packet, label: share.label, sharedAt: share.createdAt.toISOString() };
 }
