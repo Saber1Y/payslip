@@ -1,7 +1,7 @@
 import type { Assertion, Decision, Employment, PublicKeyRef, RelyingParty, SalaryRecord } from "@payslip/core";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, gt, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import type { Db } from "./client";
-import { employments, records, type EmploymentRow, type RecordRow } from "./schema";
+import { employments, records, recoveryChallenges, type EmploymentRow, type RecordRow } from "./schema";
 
 export interface NewEmployment {
   id: string;
@@ -94,6 +94,38 @@ export function createStore(db: Db) {
             ? { decisionTx: anchor.decisionTx, anchorError: null }
             : { anchorError: anchor.error };
       await db.update(records).set(set).where(eq(records.id, id));
+    },
+
+    /** Stores a new recovery challenge and clears expired ones, so the table stays small. */
+    async createRecoveryChallenge(id: string, challenge: string, expiresAt: Date): Promise<void> {
+      await db.delete(recoveryChallenges).where(or(lt(recoveryChallenges.expiresAt, new Date()), isNotNull(recoveryChallenges.usedAt)));
+      await db.insert(recoveryChallenges).values({ id, challenge, expiresAt });
+    },
+
+    /** Marks a challenge used and returns it, exactly once, and only before it expires. */
+    async consumeRecoveryChallenge(id: string): Promise<string | null> {
+      const [row] = await db
+        .update(recoveryChallenges)
+        .set({ usedAt: new Date() })
+        .where(and(eq(recoveryChallenges.id, id), isNull(recoveryChallenges.usedAt), gt(recoveryChallenges.expiresAt, new Date())))
+        .returning({ challenge: recoveryChallenges.challenge });
+      return row?.challenge ?? null;
+    },
+
+    /** The employment a passkey belongs to, and whether it is the worker's or the employer's key. */
+    async findByCredential(credentialId: string): Promise<{ row: EmploymentRow; role: "worker" | "employer" } | null> {
+      const worker = await db.query.employments.findFirst({ where: sql`${employments.workerKey}->>'credentialId' = ${credentialId}` });
+      if (worker) return { row: worker, role: "worker" };
+      const employer = await db.query.employments.findFirst({ where: sql`${employments.employerKey}->>'credentialId' = ${credentialId}` });
+      return employer ? { row: employer, role: "employer" } : null;
+    },
+
+    /** Replaces a party's link. The old link stops working the moment this commits. */
+    async rotateToken(id: string, role: "worker" | "employer", tokenHash: string): Promise<void> {
+      await db
+        .update(employments)
+        .set(role === "worker" ? { workerTokenHash: tokenHash } : { employerTokenHash: tokenHash })
+        .where(eq(employments.id, id));
     },
   };
 }

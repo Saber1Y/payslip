@@ -1,0 +1,370 @@
+{
+  "id": "ddad5761-6aba-4a4b-9f7c-9e080c22875a",
+  "prevId": "025e72d5-972a-4d90-9106-3b81fb2c4ac1",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.employments": {
+      "name": "employments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "employer_name": {
+          "name": "employer_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "worker_name": {
+          "name": "worker_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "declared_salary_cents": {
+          "name": "declared_salary_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rest_day_weekday": {
+          "name": "rest_day_weekday",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_period": {
+          "name": "start_period",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rp": {
+          "name": "rp",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "employer_key": {
+          "name": "employer_key",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "worker_key": {
+          "name": "worker_key",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salt": {
+          "name": "salt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "employment": {
+          "name": "employment",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employment_hash": {
+          "name": "employment_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employer_token_hash": {
+          "name": "employer_token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "worker_token_hash": {
+          "name": "worker_token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "worker_invite_token": {
+          "name": "worker_invite_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "open_tx": {
+          "name": "open_tx",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anchor_error": {
+          "name": "anchor_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "opened_at": {
+          "name": "opened_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "employments_worker_credential": {
+          "name": "employments_worker_credential",
+          "columns": [
+            {
+              "expression": "(\"worker_key\"->>'credentialId')",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "employments_employer_credential": {
+          "name": "employments_employer_credential",
+          "columns": [
+            {
+              "expression": "(\"employer_key\"->>'credentialId')",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "employments_employer_token_hash_unique": {
+          "name": "employments_employer_token_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "employer_token_hash"
+          ]
+        },
+        "employments_worker_token_hash_unique": {
+          "name": "employments_worker_token_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "worker_token_hash"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.records": {
+      "name": "records",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "employment_id": {
+          "name": "employment_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period": {
+          "name": "period",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "record": {
+          "name": "record",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "record_hash": {
+          "name": "record_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "employer_signature": {
+          "name": "employer_signature",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "proposal_tx": {
+          "name": "proposal_tx",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decision": {
+          "name": "decision",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decision_hash": {
+          "name": "decision_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "worker_signature": {
+          "name": "worker_signature",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decision_tx": {
+          "name": "decision_tx",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anchor_error": {
+          "name": "anchor_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "decided_at": {
+          "name": "decided_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "records_employment_period": {
+          "name": "records_employment_period",
+          "columns": [
+            {
+              "expression": "employment_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "period",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "records_employment_id_employments_id_fk": {
+          "name": "records_employment_id_employments_id_fk",
+          "tableFrom": "records",
+          "tableTo": "employments",
+          "columnsFrom": [
+            "employment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.recovery_challenges": {
+      "name": "recovery_challenges",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "challenge": {
+          "name": "challenge",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "used_at": {
+          "name": "used_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

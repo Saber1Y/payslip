@@ -8,6 +8,13 @@
       "when": 1792665189845,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792763262429,
+      "tag": "0001_passkey_recovery",
+      "breakpoints": true
     }
   ]
 }

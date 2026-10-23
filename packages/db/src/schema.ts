@@ -1,5 +1,6 @@
 import type { Assertion, Decision, Employment, PublicKeyRef, RelyingParty, SalaryRecord } from "@payslip/core";
-import { integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { index, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 /**
  * Payslip's server copy. It is a convenience, not the source of truth: everything that matters is signed
@@ -28,7 +29,11 @@ export const employments = pgTable("employments", {
   anchorError: text("anchor_error"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   openedAt: timestamp("opened_at", { withTimezone: true }),
-});
+}, (t) => [
+  // Passkey recovery looks an employment up by the credential that signed in.
+  index("employments_worker_credential").on(sql`(${t.workerKey}->>'credentialId')`),
+  index("employments_employer_credential").on(sql`(${t.employerKey}->>'credentialId')`),
+]);
 
 export const records = pgTable(
   "records",
@@ -55,3 +60,14 @@ export const records = pgTable(
 
 export type EmploymentRow = typeof employments.$inferSelect;
 export type RecordRow = typeof records.$inferSelect;
+
+/**
+ * Single-use challenges for passkey recovery. A challenge is consumed on first use and expires quickly,
+ * so a recorded sign-in can never be replayed to mint another link.
+ */
+export const recoveryChallenges = pgTable("recovery_challenges", {
+  id: text("id").primaryKey(),
+  challenge: text("challenge").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+});
