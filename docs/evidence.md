@@ -111,3 +111,21 @@ After everything above, the relayer still held 0.019986 ETH.
 The in-app browser could not complete a real passkey prompt without a person, so the live flow used an in-page authenticator that produces the same WebAuthn assertion format (ES256 over `authenticatorData || SHA-256(clientDataJSON)`).
 The server and the verifier checked those signatures with the same code they use for real passkeys.
 A real Touch ID or phone passkey has not been tested yet.
+
+## 5. The hosted app
+
+On 23 October 2026 the app was deployed to [payslip-sand.vercel.app](https://payslip-sand.vercel.app): Vercel functions in Singapore, Neon Postgres in Singapore, and the same `RecordRegistry` on Base Sepolia.
+The production database was migrated with the unpooled Neon URL, then seeded with the demo history (employment opened in [`0xfc7d4ef2…`](https://sepolia.basescan.org/tx/0xfc7d4ef280131413f4118fef5498dbfd9c91fcf8d9da01a4e7a921cc32ef448d)); its August is now a PayNow payment with reference `PAYNOW-20260912-4471`.
+
+The whole flow was then run on the live site, with the same simulated authenticator as before:
+
+| Step | Result | Transaction |
+| --- | --- | --- |
+| Demo worker presses *Check it now* | Every record matches; 0 altered, 1 disputed, 1 missing, 3 rule flags; the browser read `sepolia.base.org` directly | - |
+| New employer and worker, worker joins | Agreement and both key hashes anchored | [`0xdf5fbef1…`](https://sepolia.basescan.org/tx/0xdf5fbef117e38239721c9cbc6e947b8ca00efb1cf48c0ce7a97d9ec0ff6a991a) |
+| Employer records October, PayNow `PAYNOW-20261023-0001` | Proposal anchored | [`0x2d03111e…`](https://sepolia.basescan.org/tx/0x2d03111e18a00700c3482555ce86b151bf5b815bdda3dc4aa1a9eba7b5637ce8) |
+| Worker signs it as correct | Acknowledgement anchored | [`0xb7d679ad…`](https://sepolia.basescan.org/tx/0xb7d679ad748744cf294520a681f08bcca0438a9953787c5d649161cb7a8925d5) |
+| Worker shares with HOME, recipient opens the print page | Verified against the chain, QR code and reference on the page | - |
+| Worker loses the link and recovers it with their passkey | New link issued, old link returns 404 | - |
+
+After all of this the relayer still held 0.01997 ETH.

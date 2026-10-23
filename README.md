@@ -12,7 +12,7 @@ Singapore's Ministry of Manpower (MOM) requires the employer and the migrant dom
 Today that record lives in a notebook the employer keeps, so in a dispute it is the employer's word against the worker's.
 Payslip puts the record on both phones, has both people sign it with a passkey, gives the worker their own copy, and anchors a fingerprint of every record on-chain so nobody can rewrite it later.
 
-Live frontend: not deployed yet · Backend: runs locally · Contract: [`RecordRegistry` on Base Sepolia](https://sepolia.basescan.org/address/0x2efdab0a0a7fe2bffd8750d51c53613704e45b93).
+Live app: [payslip-sand.vercel.app](https://payslip-sand.vercel.app) · Demo worker: [Maria's records](https://payslip-sand.vercel.app/w/beS_ioXSFuP-RACnEjMW80wZKYCw7nsdQLRXJPkyKZg) · Contract: [`RecordRegistry` on Base Sepolia](https://sepolia.basescan.org/address/0x2efdab0a0a7fe2bffd8750d51c53613704e45b93).
 
 [See it in one command](#see-it-in-one-command) · [The one rule](#the-one-rule) · [Architecture](#architecture) · [What's real vs pending](#whats-real-vs-pending---the-honesty-table) · [Tests](#tests) · [The one-flow demo](#the-one-flow-demo)
 
@@ -300,7 +300,7 @@ Those keys carry `authenticator: "software-demo"` inside the hashed employment, 
 | In-browser packet verification | Real - reads Base Sepolia directly from the browser; tested with honest and altered packets |
 | MOM rule checks | Real - deadline, rest day, rest-day pay (salary / 26), underpayment, declared salary |
 | Demo history | Seeded with labelled software keys; the anchors are real |
-| Hosted deployment | Not yet established |
+| Hosted deployment | Real - [payslip-sand.vercel.app](https://payslip-sand.vercel.app) on Vercel (functions in Singapore) with Neon Postgres in Singapore, anchoring on Base Sepolia; the full flow was run on it, see [docs/evidence.md](docs/evidence.md) |
 | Translations (Bahasa Indonesia, Tagalog, Burmese) | Not yet established |
 | Corrected re-proposal after a dispute | Not yet established - one record per month |
 | Passkey recovery of a lost link | Real - tested in the browser with the simulated authenticator: recovery, replay, wrong challenge, unknown passkey, employer recovery, old link revoked |
@@ -404,11 +404,29 @@ cd Payslip
 pnpm db:migrate:base-sepolia && pnpm seed:base-sepolia && pnpm dev:base-sepolia
 ```
 
-### App
+### App on Vercel
 
-Any Node host with Postgres works (for example Vercel with a managed Postgres).
-Set every variable in the tables above; `NEXT_PUBLIC_RP_ID` must be the production hostname and `NEXT_PUBLIC_APP_ORIGIN` its `https://` origin, or passkeys will not work.
-Run `pnpm db:migrate` against the production database before the first request.
+The live app is the `payslip` Vercel project, deployed from the repository root with root directory `apps/web`, Node 24 and functions pinned to `sin1` (`apps/web/vercel.json`).
+Postgres is Neon, added through the Vercel marketplace, which sets `DATABASE_URL`; connections through Neon's pooler run without prepared statements.
+`.vercelignore` keeps every local `.env*` file, including the testnet relayer key, out of the upload.
+
+| Production variable | Value |
+| --- | --- |
+| `NEXT_PUBLIC_CHAIN_ID`, `NEXT_PUBLIC_CHAIN_NAME`, `NEXT_PUBLIC_RPC_URL`, `NEXT_PUBLIC_EXPLORER_URL` | Base Sepolia (84532), `https://sepolia.base.org`, Basescan |
+| `NEXT_PUBLIC_REGISTRY_ADDRESS` | `0x2efdab0a0a7fe2bffd8750d51c53613704e45b93` |
+| `NEXT_PUBLIC_RP_ID`, `NEXT_PUBLIC_APP_ORIGIN` | `payslip-sand.vercel.app`, `https://payslip-sand.vercel.app` |
+| `RELAYER_PRIVATE_KEY` | The testnet relayer key, stored as a sensitive variable |
+| `ENABLE_EXPERIMENTAL_COREPACK` | `1`, so Vercel uses the repository's pinned pnpm |
+| `NEXT_PUBLIC_DEMO_PATH` | The seeded demo worker's path |
+
+Passkeys belong to the production domain, so they do not work on Vercel preview URLs.
+Run the migrations against the unpooled Neon URL before deploying a schema change:
+
+```bash
+cd Payslip
+vercel env pull .env.vercel-production --environment production
+vercel deploy --prod
+```
 
 ## Project layout
 
