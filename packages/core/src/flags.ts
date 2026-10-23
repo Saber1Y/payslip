@@ -1,5 +1,5 @@
 import { paymentDeadline, type IsoDate, type Period } from "./period";
-import { expectedPayment, restDayPayDue, totalDeductions, type Decision, type Employment, type SalaryRecord } from "./record";
+import { expectedPayment, restDayPayDue, totalDeductions, TRACEABLE_METHODS, type Decision, type Employment, type SalaryRecord } from "./record";
 
 /**
  * Checks a month against the MOM rules Payslip can see from the record itself. A flag is a prompt to
@@ -15,7 +15,8 @@ export type FlagCode =
   | "REST_DAY_PAY_SHORT"
   | "UNDERPAID"
   | "BELOW_DECLARED_SALARY"
-  | "DEDUCTIONS";
+  | "DEDUCTIONS"
+  | "NO_PAYMENT_REFERENCE";
 
 /** breach: the record shows a likely rule breach. warning: the parties disagree. info: worth noting. */
 export type FlagSeverity = "breach" | "warning" | "info";
@@ -73,6 +74,9 @@ export function monthFlags(employment: Pick<Employment, "declaredMonthlySalaryCe
     });
   }
   const deducted = totalDeductions(record);
+  if (TRACEABLE_METHODS.includes(record.method) && !record.paymentReference) {
+    flags.push({ code: "NO_PAYMENT_REFERENCE", severity: "info", message: "Paid by transfer, but no transfer reference was recorded" });
+  }
   if (deducted > 0) flags.push({ code: "DEDUCTIONS", severity: "info", message: `${sgd(deducted)} deducted: ${record.deductions.map((d) => d.label).join(", ")}` });
   return flags;
 }

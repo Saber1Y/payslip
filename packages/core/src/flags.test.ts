@@ -6,8 +6,16 @@ import { makeRecord } from "./test-fixtures";
 const employment = { declaredMonthlySalaryCents: 65_000 };
 const ack = { version: 1 as const, recordHash: `0x${"aa".repeat(32)}` as const, decision: "acknowledge" as const, reasons: [], underProtest: false };
 const codes = (flags: { code: string }[]) => flags.map((f) => f.code);
+/** hashRecord(makeRecord("2026-04")) as computed by the code before transfer references were added. */
+const PRE_REFERENCE_HASH = "0x2d2ead8fdccc9c1041ad71870c4e16d37cd19d2ee4523deb4619c28a81552967";
 
 describe("MOM rules", () => {
+  it("notes a transfer with no reference, but never a cash payment", () => {
+    expect(codes(monthFlags(employment, { period: "2026-04", record: makeRecord("2026-04", { method: "paynow" }), decision: ack }, "2026-06-01"))).toEqual(["NO_PAYMENT_REFERENCE"]);
+    expect(monthFlags(employment, { period: "2026-04", record: makeRecord("2026-04", { method: "paynow", paymentReference: "PAYNOW-1111" }), decision: ack }, "2026-06-01")).toEqual([]);
+    expect(monthFlags(employment, { period: "2026-04", record: makeRecord("2026-04"), decision: ack }, "2026-06-01")).toEqual([]);
+  });
+
   it("matches MOM's worked example: $650 salary, 2 rest days worked, $50 owed", () => {
     expect(restDayPayDue(65_000, 2)).toBe(5_000);
     expect(restDayPayDue(65_000, 4)).toBe(10_000);
@@ -58,6 +66,31 @@ describe("record validation", () => {
     expect(decisionSchema.safeParse({ ...ack, decision: "dispute" }).success).toBe(false);
     expect(decisionSchema.safeParse({ ...ack, reasons: ["other"] }).success).toBe(false);
     expect(decisionSchema.safeParse({ ...ack, decision: "dispute", reasons: ["other"], underProtest: true }).success).toBe(false);
+  });
+
+  it("accepts a transfer reference only for bank transfers and PayNow, exactly as typed", () => {
+    expect(salaryRecordSchema.safeParse(makeRecord("2026-04", { method: "paynow", paymentReference: "PAYNOW-20260430-8812" })).success).toBe(true);
+    expect(salaryRecordSchema.safeParse(makeRecord("2026-04", { method: "bank_transfer", paymentReference: "FT26120ABCD" })).success).toBe(true);
+    expect(salaryRecordSchema.safeParse(makeRecord("2026-04", { method: "cash", paymentReference: "FT26120ABCD" })).success).toBe(false);
+    expect(salaryRecordSchema.safeParse(makeRecord("2026-04", { method: "paynow", paymentReference: " FT26120ABCD" })).success).toBe(false);
+    expect(salaryRecordSchema.safeParse(makeRecord("2026-04", { method: "paynow", paymentReference: "abc" })).success).toBe(false);
+    expect(salaryRecordSchema.safeParse(makeRecord("2026-04", { method: "paynow", paymentReference: "<script>" })).success).toBe(false);
+    expect(salaryRecordSchema.safeParse(makeRecord("2026-04", { deductions: [{ label: " Vase", cents: 100 }] })).success).toBe(false);
+  });
+
+  it("keeps the fingerprint of records made before transfer references existed", () => {
+    const old = makeRecord("2026-04", { method: "bank_transfer" });
+    const parsed = salaryRecordSchema.parse(old);
+    expect("paymentReference" in parsed).toBe(false);
+    expect(hashRecord(parsed)).toBe(hashRecord(old));
+    // Fixed value computed before the field was added; it must never change.
+    expect(hashRecord(makeRecord("2026-04"))).toBe(PRE_REFERENCE_HASH);
+  });
+
+  it("puts the transfer reference inside the fingerprint", () => {
+    const base = makeRecord("2026-04", { method: "paynow", paymentReference: "PAYNOW-1111" });
+    expect(hashRecord({ ...base, paymentReference: "PAYNOW-2222" })).not.toBe(hashRecord(base));
+    expect(hashRecord(base)).not.toBe(hashRecord({ ...base, paymentReference: undefined }));
   });
 
   it("changes the fingerprint when any field changes", () => {

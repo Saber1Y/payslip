@@ -16,7 +16,7 @@ const period = z.string().refine(isPeriod, "YYYY-MM") as unknown as z.ZodType<Pe
 const isoDate = z.string().refine(isIsoDate, "YYYY-MM-DD") as unknown as z.ZodType<IsoDate>;
 /** Money is integer cents. Floats never appear in anything that gets hashed. */
 const cents = z.number().int().nonnegative().max(100_000_000);
-const shortText = z.string().trim().min(1).max(60);
+const shortText = z.string().min(1).max(60).refine((v) => v === v.trim(), "Remove spaces at the start or end");
 
 const partySchema = z.object({ displayName: shortText, key: publicKeyRefSchema });
 
@@ -40,7 +40,23 @@ export const employmentSchema = z.object({
 });
 export type Employment = z.infer<typeof employmentSchema>;
 
-export const PAYMENT_METHODS = ["cash", "bank_transfer"] as const;
+export const PAYMENT_METHODS = ["cash", "bank_transfer", "paynow"] as const;
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+/** Methods that leave a trail at the bank, which a transfer reference points to. */
+export const TRACEABLE_METHODS: readonly PaymentMethod[] = ["bank_transfer", "paynow"];
+
+/**
+ * The bank's or PayNow's own reference for the transfer, as shown in the banking app. Hashing it into the
+ * record ties the signed month to the bank's trail without Payslip ever touching the money. Optional, and
+ * absent from older records, so their fingerprints are unchanged.
+ */
+export const paymentReferenceSchema = z
+  .string()
+  // Never transform a hashed field: what the browser signed must be exactly what is stored and re-hashed.
+  .refine((v) => v === v.trim(), "Remove spaces at the start or end")
+  .min(4, "A transfer reference has at least 4 characters")
+  .max(64)
+  .regex(/^[A-Za-z0-9 ._/:#-]+$/, "Use the reference exactly as your bank shows it: letters, numbers and - . / : #");
 
 /** One month's salary record, proposed and signed by the employer. */
 export const salaryRecordSchema = z
@@ -59,11 +75,15 @@ export const salaryRecordSchema = z
     amountPaidCents: cents,
     paidOn: isoDate,
     method: z.enum(PAYMENT_METHODS),
+    paymentReference: paymentReferenceSchema.optional(),
     salt: hex32,
   })
   .superRefine((record, ctx) => {
     if (record.restDaysTaken + record.restDaysWorked !== record.restDaysInMonth) {
       ctx.addIssue({ code: "custom", path: ["restDaysTaken"], message: "Rest days taken and worked must add up to the rest days in the month" });
+    }
+    if (record.paymentReference !== undefined && !TRACEABLE_METHODS.includes(record.method)) {
+      ctx.addIssue({ code: "custom", path: ["paymentReference"], message: "Only bank transfers and PayNow have a transfer reference" });
     }
     if (record.paidOn < periodStart(record.period)) {
       ctx.addIssue({ code: "custom", path: ["paidOn"], message: "Payment date is before the salary period starts" });
