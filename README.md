@@ -32,6 +32,7 @@ It keeps evidence of what was agreed and paid; it is not legal advice, it does n
   - [Disputes that cannot be erased](#disputes-that-cannot-be-erased)
   - [A claim packet the worker owns](#a-claim-packet-the-worker-owns)
   - [Verification without trusting Payslip](#verification-without-trusting-payslip)
+  - [Recovery with a passkey](#recovery-with-a-passkey)
 - [Architecture](#architecture)
 - [Component by component](#component-by-component)
 - [Safety, enforced in code](#safety-enforced-in-code)
@@ -137,6 +138,13 @@ The packet holds the employment, both public keys, every record, every signature
 It also lists months that are missing after their deadline and months that exist on-chain but were left out of the file.
 On an altered month it skips the rule checks, because the numbers in that copy cannot be trusted.
 
+### Recovery with a passkey
+
+A lost link is not a lost record.
+On `/recover`, the worker (or the employer) signs in with the passkey they already have, without Payslip knowing which one in advance.
+The server signs nothing and stores no password: it issues a single-use challenge, finds the employment by the credential that answered, checks the signature against the key stored for that role, and issues a fresh link.
+The old link stops working at the same moment, so a leaked link is also cut off.
+
 ## Architecture
 
 Two decisions shape everything else:
@@ -214,6 +222,9 @@ flowchart TB
 | A worker cannot be impersonated with a swapped key | The worker and employer key hashes are anchored when the employment opens |
 | One record per month, one answer per record | Unique index on `(employment_id, period)` and conditional updates on `decision IS NULL` |
 | A leaked link cannot sign anything | Links are 256-bit bearer tokens stored only as SHA-256 hashes; every change also needs the party's passkey |
+| A recovery sign-in cannot be replayed | Each recovery challenge is random, single-use and expires after 5 minutes; it is consumed before the signature is checked |
+| Recovery cannot hand out someone else's records | The employment is found by the signing credential, and the signature must verify against the key stored for that party |
+| A recovered link replaces the old one | Recovery rotates the party's token hash, so the previous link returns 404 |
 | A verifier cannot be pointed at a fake registry | The verify page always reads this site's configured registry and warns when a packet names another one |
 | Nothing private is public | Only salted hashes and key hashes go on-chain |
 
@@ -272,6 +283,7 @@ Those keys carry `authenticator: "software-demo"` inside the hashed employment, 
 | Hosted deployment | Not yet established |
 | Translations (Bahasa Indonesia, Tagalog, Burmese) | Not yet established |
 | Corrected re-proposal after a dispute | Not yet established - one record per month |
+| Passkey recovery of a lost link | Real - tested in the browser with the simulated authenticator: recovery, replay, wrong challenge, unknown passkey, employer recovery, old link revoked |
 | Encrypted worker backup and NGO recovery | Not yet established |
 
 The biggest open item is hosting the app and testing on real devices.
@@ -407,7 +419,8 @@ The receipt and verification patterns are adapted from RelayMesh, by the same au
 - Host the app against the Base Sepolia contract.
 - Bahasa Indonesia, Tagalog and Burmese for the worker screens.
 - Corrected re-proposals after a dispute, keeping the disputed version on record.
-- Encrypted worker backups with recovery through a partner NGO.
+- Rate limiting for the recovery endpoints.
+- Encrypted worker backups with recovery through a partner NGO, for a worker who also loses their passkey.
 - A printable claim packet alongside the JSON file.
 - A pilot with HOME or the Centre for Domestic Employees.
 
