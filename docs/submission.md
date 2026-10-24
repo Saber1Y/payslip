@@ -12,6 +12,8 @@ Submissions close 25 October 2026, 00:00 UTC (08:00 in Singapore).
 
 **BUIDL name:** Payslip
 
+**Logo:** upload `docs/brand/payslip-mark-1024.png` (square). Cover or banner, if asked: `docs/brand/payslip-social-card.png` (1200 x 630).
+
 **Vision (one line):**
 Salary records that migrant domestic workers own: employer and worker both sign each month with a passkey, and a fingerprint goes on Base so nobody can rewrite it.
 

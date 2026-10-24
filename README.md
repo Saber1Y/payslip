@@ -450,6 +450,7 @@ Payslip/
   scripts/              # ABI export, deploy, demo seed, env loader
   docs/evidence.md      # Base Sepolia commands and transactions
   docs/screenshots/     # images used in this README
+  docs/brand/           # logo mark (SVG, PNG), wordmarks and the social card
 ```
 
 ## Tech stack, credits, roadmap
