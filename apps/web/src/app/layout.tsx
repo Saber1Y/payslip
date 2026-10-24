@@ -10,6 +10,8 @@ const serif = Fraunces({ subsets: ["latin"], variable: "--font-fraunces" });
 const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono" });
 
 export const metadata: Metadata = {
+  // Absolute URLs for the social card; falls back to localhost in development.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_ORIGIN || "http://localhost:3020"),
   title: "Payslip",
   description: "Salary records that domestic workers own. Both sides sign every month, and a fingerprint goes on-chain so nobody can rewrite it.",
   applicationName: "Payslip",

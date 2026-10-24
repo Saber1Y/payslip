@@ -1,0 +1,1 @@
+Payslip: the salary notebook, made tamper-proof. Employer and worker sign each month with a passkey, and a fingerprint goes on Base.
