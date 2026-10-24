@@ -107,62 +107,101 @@ The receipt and verification pattern is adapted from RelayMesh, an earlier proje
 
 ## Demo video script (about 3 minutes)
 
-Record in a desktop browser at https://payslip-sand.vercel.app, with a phone for the worker's passkey if you can.
-Keep the Basescan tab ready.
-Narration is in quotes; actions are in brackets.
+Narration is in quotes, actions are in brackets, and each scene starts with the page you are on.
+The employer and the worker each need their own passkey, so use two browsers: **Chrome as the employer** and **Safari (or your phone) as the worker**.
+Always use https://payslip-sand.vercel.app exactly; passkeys do not work on any other address.
+
+### Before you record (5 minutes, not filmed)
+
+1. **Chrome, home page** https://payslip-sand.vercel.app → *Start as an employer*.
+2. **Chrome, setup page** https://payslip-sand.vercel.app/start → household "Lim family", worker "Siti", salary `700`, rest day Sunday, first month **September 2026** → *Create passkey and continue* → Touch ID.
+3. **Chrome, links screen** (still /start) → copy the **invite link** (`/w/…`) and paste it into a note; also save **your employer link** (`/e/…`).
+4. **Safari, worker invite page** `https://payslip-sand.vercel.app/w/…` (the invite link) → *Create my passkey* → Touch ID.
+The page now says "Worker's page · Siti".
+5. Open a third tab on **Basescan** so you can switch to it during the video.
+6. Have two tabs ready in Chrome: your **employer page** `/e/…` and the **demo worker** https://payslip-sand.vercel.app/w/beS_ioXSFuP-RACnEjMW80wZKYCw7nsdQLRXJPkyKZg.
+
+September is now past MOM's 7-day deadline with nothing recorded, so it shows as *Missing*, which is a good opening shot for the employer page.
+
+### Scenes
 
 **0:00 to 0:20, the problem**
-[Home page.]
+Page: **home** https://payslip-sand.vercel.app (Chrome).
+[Start on the headline.]
 "Singapore has over 320,000 migrant domestic workers.
 MOM already requires both the employer and the worker to sign each cash salary record.
 Today that record is a notebook the employer keeps.
 When there's a dispute, it's the employer's notebook against the worker's word."
 
 **0:20 to 0:35, the idea**
-[Scroll to "One month, four steps".]
+Page: **home**, scrolled to "One month, four steps".
 "Payslip puts that record on both phones.
 Both people sign every month with a passkey, and a fingerprint of the record goes on Base, so nobody can rewrite it later."
 
 **0:35 to 1:20, the employer records a month**
-[Open your employer link for a live employment. Press *Record this month*.]
+Page: **employer page** `https://payslip-sand.vercel.app/e/…` (Chrome).
+The badge reads "Employer's page · Lim family", and September is stamped *Missing*.
+[Press *Record this month* on September.]
 "The employer records the salary and the rest days."
-[Set two rest days worked.]
-"Payslip fills in MOM's minimum rest-day pay, salary divided by 26."
-[Set the date after the deadline.]
-"Pay after the 7-day deadline is flagged before anything is signed."
-[Choose PayNow and paste a reference.]
+[Set *Rest days worked instead* to 2.]
+"Payslip fills in MOM's minimum rest-day pay: salary divided by 26."
+[Set *Paid on* to 12 October.]
+"Paying after the 7-day deadline is flagged before anything is signed."
+[Choose *PayNow* and type a reference such as `PAYNOW-20261012-4471`.]
 "For a bank transfer or PayNow, the bank's own reference goes into the signed record."
-[Press *Sign and send*, approve the passkey.]
-"The employer signs with a passkey: no wallet, no seed phrase.
-The fingerprint is anchored."
-[Click the anchor link to show the Basescan transaction.]
+[Press *Sign and send to Siti*, approve with Touch ID.]
+"The employer signs with a passkey: no wallet, no seed phrase."
+[Click the *Employer's record anchored* link.]
+Page: **Basescan** transaction page.
+"The fingerprint is on Base."
 
 **1:20 to 1:55, the worker answers**
-[Phone or second browser: the worker's link, *Review and answer*.]
+Page: **worker page** `https://payslip-sand.vercel.app/w/…` (Safari or phone).
+The badge reads "Worker's page · Siti" and the title says "1 month needs your answer".
+[Press *Review and answer* on September.]
 "The worker checks it on their own phone."
-[Choose *Something is wrong*, tick *I was paid late*, sign.]
+[Choose *Something is wrong*, tick *I was paid late*, press *Sign my dispute*, approve with Touch ID.]
 "They can sign, sign under protest, or dispute with reasons.
 The dispute is anchored too, and can never be erased."
+[The stamp changes to *Disputed*.]
 
 **1:55 to 2:30, anyone can verify**
-[Open the demo worker's records, press *Check it now*.]
-"Here's six months of a worker's history.
-The check runs entirely in this browser: every record is fingerprinted again, both signatures are verified, and the anchors are read straight from Base.
+Page: **demo worker** https://payslip-sand.vercel.app/w/beS_ioXSFuP-RACnEjMW80wZKYCw7nsdQLRXJPkyKZg (Chrome).
+"Here's six months of a worker's history."
+[Press *Check it now*.]
+Page: **check page** https://payslip-sand.vercel.app/verify (opens on its own).
+"The check runs entirely in this browser: every record is fingerprinted again, both signatures are verified, and the anchors are read straight from Base.
 Payslip's server isn't trusted."
-[Point at the stamps.]
+[Scroll over the stamps.]
 "A disputed June, a July signed under protest, a late August, and a September with no record at all, flagged as missing."
-[Download the packet, change one amount in the file, drop it on *Check records* (top right).]
+[Go back to the demo worker page, press *Download*, change one amount in the file, then open *Check records* (top right) and drop the file in.]
+Page: **check page** https://payslip-sand.vercel.app/verify.
 "If anyone edits a single number, that month shows as altered."
 
 **2:30 to 2:50, the worker shares**
-[Back on the worker page: *Share with an NGO or MOM*, type HOME, create the link, then *Print with QR code*.]
+Page: **worker page** `https://payslip-sand.vercel.app/w/…` (Safari, Siti's page).
+[In *Share with an NGO or MOM*, type HOME, press *Create a share link*, then *Print with QR code*.]
+Page: **print page** `https://payslip-sand.vercel.app/s/…/print`.
 "The worker shares a link with an NGO, which they can stop at any time, or prints a page for an officer.
 The QR code opens the same live check."
 
 **2:50 to 3:00, close**
-[Home page.]
+Page: **home** https://payslip-sand.vercel.app.
 "Payslip doesn't touch the money.
 It makes the record of the money impossible to rewrite, and puts it in the worker's hands."
+
+### Pages at a glance
+
+| Page | Address | Who uses it |
+| --- | --- | --- |
+| Home | https://payslip-sand.vercel.app | Everyone |
+| Employer setup | https://payslip-sand.vercel.app/start | Employer, once |
+| Employer page | `https://payslip-sand.vercel.app/e/…` (your employer link) | Employer, every month |
+| Worker page | `https://payslip-sand.vercel.app/w/…` (the invite link) | Worker, every month |
+| Check records | https://payslip-sand.vercel.app/verify | NGOs, MOM, lawyers |
+| Shared packet | `https://payslip-sand.vercel.app/s/…` and `/s/…/print` | Whoever the worker shares with |
+| Lost link | https://payslip-sand.vercel.app/recover | Anyone with their passkey |
+| Demo worker | https://payslip-sand.vercel.app/w/beS_ioXSFuP-RACnEjMW80wZKYCw7nsdQLRXJPkyKZg | Judges |
 
 ## Announcement post (optional)
 
