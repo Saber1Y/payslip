@@ -138,6 +138,12 @@ function Records({ token, view, onView }: { token: string; view: PartyView; onVi
     <div className="grid gap-6">
       <PartyHeader view={view} token={token} onView={onView} title={waiting.length === 0 ? "Your salary records" : waiting.length === 1 ? "1 month needs your answer" : `${waiting.length} months need your answer`} />
 
+      {waiting.length === 0 && (
+        <Notice title="Nothing needs your answer right now">
+          {employment.employerName} records each month first, usually after paying you. When they do, the month appears below with a <strong className="font-medium">Review and answer</strong> button.
+        </Notice>
+      )}
+
       <KeepLinkPanel token={token} />
 
       <section className="slip flex flex-wrap items-center justify-between gap-3 p-5">
