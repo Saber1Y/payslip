@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowClockwise } from "@phosphor-icons/react";
+import { ArrowClockwise, House, UserCircle } from "@phosphor-icons/react";
+import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/lib/api";
 import { periodLabel, sgd, WEEKDAYS } from "@/lib/format";
@@ -8,8 +9,8 @@ import type { PartyView } from "@/lib/views";
 import { AnchorLine } from "./month-slip";
 import { Button, Notice } from "./ui";
 
-/** Shared top of the employer and worker pages: who, the agreement, and chain status. */
-export function PartyHeader({ view, token, title, eyebrow, onView }: { view: PartyView; token: string; title: string; eyebrow: string; onView: (v: PartyView) => void }) {
+/** Employer and worker pages look alike, so each says plainly whose page it is and where the other person goes. */
+export function PartyHeader({ view, token, title, onView }: { view: PartyView; token: string; title: string; onView: (v: PartyView) => void }) {
   const { employment } = view;
   const [retrying, setRetrying] = useState(false);
   const unanchored = employment.status === "open" && (!employment.openTx || view.months.some((m) => m.record && (!m.proposalTx || (m.decision && !m.decisionTx))));
@@ -17,7 +18,7 @@ export function PartyHeader({ view, token, title, eyebrow, onView }: { view: Par
   return (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <p className="figures text-[12px] tracking-[0.12em] text-muted uppercase">{eyebrow}</p>
+        <RoleBadge view={view} />
         <h1 className="font-serif text-[30px] leading-[1.1] font-semibold tracking-[-0.02em] sm:text-[38px]">{title}</h1>
         <dl className="flex flex-wrap gap-x-5 gap-y-1 text-[14px] text-muted">
           <div className="flex gap-1.5">
@@ -65,6 +66,29 @@ export function PartyHeader({ view, token, title, eyebrow, onView }: { view: Par
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+function RoleBadge({ view }: { view: PartyView }) {
+  const { employment } = view;
+  const worker = view.role === "worker";
+  const me = worker ? employment.workerName : employment.employerName;
+  const other = worker ? employment.employerName : employment.workerName;
+  const Icon = worker ? UserCircle : House;
+  return (
+    <div className="grid gap-1.5">
+      <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-[13px] font-medium text-accent">
+        <Icon className="size-4" aria-hidden />
+        {worker ? "Worker's page" : "Employer's page"} · {me}
+      </p>
+      <p className="text-[13px] text-muted">
+        Not {me}? {worker ? `If you're the employer, ${other}, open your employer link instead` : `If you're the worker, ${other}, open the invite link sent to you instead`}, or{" "}
+        <Link href="/recover" className="text-accent underline underline-offset-2">
+          find your page with your passkey
+        </Link>
+        .
+      </p>
     </div>
   );
 }

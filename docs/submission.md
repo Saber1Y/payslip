@@ -151,7 +151,7 @@ The check runs entirely in this browser: every record is fingerprinted again, bo
 Payslip's server isn't trusted."
 [Point at the stamps.]
 "A disputed June, a July signed under protest, a late August, and a September with no record at all, flagged as missing."
-[Download the packet, change one amount in the file, drop it on *Verify a packet*.]
+[Download the packet, change one amount in the file, drop it on *Check records* (top right).]
 "If anyone edits a single number, that month shows as altered."
 
 **2:30 to 2:50, the worker shares**

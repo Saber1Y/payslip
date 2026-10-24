@@ -40,9 +40,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <nav className="flex items-center gap-1 text-sm">
               <MyRecordsLink />
-              <Link href="/verify" className="press rounded-full px-3 py-1.5 whitespace-nowrap text-muted hover:bg-sheet hover:text-ink">
-                <span className="sm:hidden">Verify</span>
-                <span className="hidden sm:inline">Verify a packet</span>
+              <Link href="/verify" title="For NGOs, MOM and lawyers: check a worker's claim packet" className="press rounded-full px-3 py-1.5 whitespace-nowrap text-muted hover:bg-sheet hover:text-ink">
+                <span className="sm:hidden">Check</span>
+                <span className="hidden sm:inline">Check records</span>
               </Link>
               <Link href="/start" className="press hidden rounded-full px-3 py-1.5 text-muted hover:bg-sheet hover:text-ink sm:inline">
                 For employers

@@ -20,7 +20,7 @@ export function EmployerWorkspace({ token }: { token: string }) {
 
   return (
     <div className="grid gap-6">
-      <PartyHeader view={view} token={token} onView={setView} eyebrow={`${employment.employerName} · employer`} title={`Salary records for ${employment.workerName}`} />
+      <PartyHeader view={view} token={token} onView={setView} title={`Salary records for ${employment.workerName}`} />
 
       {employment.status === "awaiting_worker" && view.inviteUrl && (
         <section className="slip grid gap-3 p-5">

@@ -136,7 +136,7 @@ function Records({ token, view, onView }: { token: string; view: PartyView; onVi
 
   return (
     <div className="grid gap-6">
-      <PartyHeader view={view} token={token} onView={onView} eyebrow={`${employment.workerName} · your records`} title={waiting.length === 0 ? "Your salary records" : waiting.length === 1 ? "1 month needs your answer" : `${waiting.length} months need your answer`} />
+      <PartyHeader view={view} token={token} onView={onView} title={waiting.length === 0 ? "Your salary records" : waiting.length === 1 ? "1 month needs your answer" : `${waiting.length} months need your answer`} />
 
       <KeepLinkPanel token={token} />
 
@@ -185,6 +185,10 @@ function Records({ token, view, onView }: { token: string; view: PartyView; onVi
                   setReviewing(null);
                 }}
               />
+            ) : month.state === "due" ? (
+              <p className="text-[14px] text-muted">
+                {employment.employerName} records this month, usually after paying you. When they do, it appears here for you to check and sign.
+              </p>
             ) : undefined}
           </MonthSlip>
         ))}

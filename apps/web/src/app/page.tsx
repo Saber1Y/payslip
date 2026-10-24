@@ -35,7 +35,7 @@ export default function Home() {
               <ArrowRight className="size-4" aria-hidden />
             </Link>
             <Link href="/verify" className="press inline-flex min-h-12 items-center rounded-full border border-rule-strong bg-sheet px-6 text-[15px] font-medium hover:border-ink/40">
-              Verify a packet
+              Check a worker&apos;s records
             </Link>
             {DEMO_PATH && (
               <Link href={DEMO_PATH} className="press inline-flex min-h-12 items-center rounded-full px-1 text-[15px] font-medium text-accent underline-offset-4 hover:underline sm:px-3">
